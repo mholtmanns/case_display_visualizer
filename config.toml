@@ -20,3 +20,9 @@ line_thickness = 1
 # Starfield scroll direction. One of: left (default), right, up, down,
 # away (tunnel effect, receding), towards (tunnel effect, warp speed)
 starfield_direction = "left"
+# Equalizer layout. One of:
+#   bottom - classic bar row along the bottom edge (default)
+#   radial - bars radiate outward from a circle enclosing the hex rings;
+#            the rings are fixed at 4 and made smaller to fit. Loud audio
+#            can push bars past the screen edge -- that's expected.
+equalizer_style = "bottom"

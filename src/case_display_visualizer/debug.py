@@ -24,6 +24,7 @@ def dump_config(
         f"Color theme    : {settings.color_theme}",
         f"Line thickness : {settings.line_thickness}px",
         f"Starfield dir. : {settings.starfield_direction}",
+        f"Equalizer style: {settings.equalizer_style}",
         "=======================================",
     ]
     print("\n".join(lines), flush=True)

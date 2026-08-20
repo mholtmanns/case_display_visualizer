@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from case_display_visualizer.scenes.equalizer import DEFAULT_STYLE, STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS, DEFAULT_DIRECTION
 
 ALL_SENSORS = ("cpu", "gpu", "audio", "input")
@@ -30,6 +31,7 @@ class AppSettings:
     color_theme: str = "auto"
     line_thickness: int = 1
     starfield_direction: str = DEFAULT_DIRECTION
+    equalizer_style: str = DEFAULT_STYLE
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -59,6 +61,10 @@ class AppSettings:
     def set_starfield_direction(self, direction: str) -> None:
         if direction in ALL_DIRECTIONS:
             self.starfield_direction = direction
+
+    def set_equalizer_style(self, style: str) -> None:
+        if style in STYLES:
+            self.equalizer_style = style
 
     def request_quit(self) -> None:
         self.quit_requested = True
@@ -112,6 +118,7 @@ def save_settings(settings: AppSettings, path: Path | None = None) -> None:
         f'theme = "{settings.color_theme}"',
         f"line_thickness = {settings.line_thickness}",
         f'starfield_direction = "{settings.starfield_direction}"',
+        f'equalizer_style = "{settings.equalizer_style}"',
         "",
     ]
 
@@ -135,3 +142,6 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
 
     starfield_direction = display.get("starfield_direction", DEFAULT_DIRECTION)
     settings.set_starfield_direction(starfield_direction)
+
+    equalizer_style = display.get("equalizer_style", DEFAULT_STYLE)
+    settings.set_equalizer_style(equalizer_style)

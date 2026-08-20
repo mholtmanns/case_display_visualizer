@@ -8,6 +8,7 @@ import math
 import pystray
 from PIL import Image, ImageDraw
 
+from case_display_visualizer.scenes.equalizer import STYLES as EQUALIZER_STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS
 from case_display_visualizer.settings import (
     ALL_SENSORS,
@@ -34,6 +35,11 @@ DIRECTION_LABELS = {
     "down": "Down",
     "away": "Away (tunnel)",
     "towards": "Towards (tunnel)",
+}
+
+EQUALIZER_STYLE_LABELS = {
+    "bottom": "Bottom bar (default)",
+    "radial": "Radial (around rings)",
 }
 
 
@@ -110,6 +116,16 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def direction_checked(direction: str):
         return lambda item: settings.starfield_direction == direction
 
+    def equalizer_style_handler(style: str):
+        def handler(icon, item):
+            settings.set_equalizer_style(style)
+            persist()
+
+        return handler
+
+    def equalizer_style_checked(style: str):
+        return lambda item: settings.equalizer_style == style
+
     def quit_handler(icon, item):
         settings.request_quit()
         icon.stop()
@@ -170,12 +186,23 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         for direction in ALL_DIRECTIONS
     ]
 
+    equalizer_style_items = [
+        pystray.MenuItem(
+            EQUALIZER_STYLE_LABELS[style],
+            equalizer_style_handler(style),
+            checked=equalizer_style_checked(style),
+            radio=True,
+        )
+        for style in EQUALIZER_STYLES
+    ]
+
     menu = pystray.Menu(
         pystray.MenuItem("Sensors", pystray.Menu(*sensor_items)),
         pystray.MenuItem("Speed", pystray.Menu(*speed_items)),
         pystray.MenuItem("Theme", pystray.Menu(*theme_items)),
         pystray.MenuItem("Line thickness", pystray.Menu(*line_thickness_items)),
         pystray.MenuItem("Starfield direction", pystray.Menu(*direction_items)),
+        pystray.MenuItem("Equalizer style", pystray.Menu(*equalizer_style_items)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_handler),
     )

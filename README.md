@@ -52,7 +52,8 @@ falling back to the first non-primary monitor otherwise. A system tray icon
 (sci-fi hexagon) appears once running, with a menu to toggle individual
 sensors (CPU/GPU/audio/keyboard-mouse), pick an animation speed, choose a
 color theme, set the ring line thickness (1-6px), pick the starfield
-direction (left/right/up/down/away/towards), and quit.
+direction (left/right/up/down/away/towards), choose the equalizer layout
+(bottom bar / radial around the rings), and quit.
 
 ### Flags
 
@@ -76,8 +77,19 @@ easy to dial in colors and settings without motion in the way. Combine with
 
 Edit [config.toml](config.toml) to change defaults (which sensors start
 enabled, animation speed, color theme, ring line thickness, starfield
-direction), or copy it to `config.local.toml` for machine-specific
-overrides -- that file is gitignored and takes precedence when present.
+direction, equalizer layout), or copy it to `config.local.toml` for
+machine-specific overrides -- that file is gitignored and takes precedence
+when present.
+
+### Radial equalizer
+
+Setting `equalizer_style = "radial"` (config or tray) moves the audio bars
+from the bottom edge to a circle enclosing the hex rings, radiating
+outward -- low frequencies at 12 o'clock, going clockwise to high
+frequencies. In this mode the rings are locked to a fixed count of 4 and
+shrunk so the enclosing circle has guaranteed clearance; switching back to
+`"bottom"` restores the rings' normal variable size/count. Loud audio can
+push bars past the screen edge in this mode -- that's expected, not a bug.
 
 Changes made via the tray menu are saved automatically to
 `config.local.toml`, so they persist across restarts. `config.toml` itself

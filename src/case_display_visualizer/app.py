@@ -14,7 +14,7 @@ from case_display_visualizer.debug import LiveTelemetry, dump_config
 from case_display_visualizer.display import find_target_display
 from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
-from case_display_visualizer.scenes.hex_rings import HexRings
+from case_display_visualizer.scenes.hex_rings import COMPACT_MAX_REACH, HexRings
 from case_display_visualizer.scenes.particles import ParticleBursts
 from case_display_visualizer.scenes.starfield import Starfield
 from case_display_visualizer.sensors.audio import AudioSensor
@@ -27,6 +27,10 @@ from case_display_visualizer.tray import build_tray_icon
 
 BACKGROUND_COLOR = (5, 6, 12)
 TARGET_FPS = 60
+# Clearance margin beyond the compact rings' worst-case reach, so the radial
+# equalizer's inner circle never visually collides with the rings.
+RADIAL_EQUALIZER_MARGIN = 20.0
+RADIAL_EQUALIZER_INNER_RADIUS = COMPACT_MAX_REACH + RADIAL_EQUALIZER_MARGIN
 
 _HWND_TOPMOST = -1
 _SWP_NOMOVE = 0x0002
@@ -51,6 +55,15 @@ def _set_always_on_top() -> None:
         0,
         _SWP_NOMOVE | _SWP_NOSIZE,
     )
+
+
+def _apply_equalizer_style(style: str, hex_rings: HexRings, equalizer: EqualizerBars) -> None:
+    """Radial mode needs the rings compact/fixed-count so the equalizer's
+    enclosing circle has guaranteed clearance; bottom mode restores normal
+    ring sizing/count variability."""
+    is_radial = style == "radial"
+    hex_rings.set_compact(is_radial)
+    equalizer.set_style(style, inner_radius=RADIAL_EQUALIZER_INNER_RADIUS)
 
 
 def run(argv: list[str] | None = None) -> None:
@@ -109,6 +122,7 @@ def run(argv: list[str] | None = None) -> None:
         current_auto_theme = randomizer.next_theme()
         hex_rings.set_shape_variant(*randomizer.next_ring_variant())
     applied_theme = None
+    applied_equalizer_style = None
 
     telemetry = LiveTelemetry() if verbose >= 2 and not static else None
 
@@ -151,6 +165,10 @@ def run(argv: list[str] | None = None) -> None:
 
                 hex_rings.set_line_thickness(settings.line_thickness)
                 starfield.set_direction(settings.starfield_direction)
+
+                if settings.equalizer_style != applied_equalizer_style:
+                    applied_equalizer_style = settings.equalizer_style
+                    _apply_equalizer_style(applied_equalizer_style, hex_rings, equalizer)
             else:
                 if randomizer.update(dt):
                     current_auto_theme = randomizer.next_theme()
@@ -170,6 +188,10 @@ def run(argv: list[str] | None = None) -> None:
 
                 hex_rings.set_line_thickness(settings.line_thickness)
                 starfield.set_direction(settings.starfield_direction)
+
+                if settings.equalizer_style != applied_equalizer_style:
+                    applied_equalizer_style = settings.equalizer_style
+                    _apply_equalizer_style(applied_equalizer_style, hex_rings, equalizer)
 
                 energy = composer.update(dt)
 

@@ -11,12 +11,26 @@ from case_display_visualizer.render.primitives import (
     regular_polygon_points,
 )
 
+DEFAULT_BASE_RADIUS = 90.0
+# Smaller/fixed-count layout used when the radial equalizer encloses the
+# rings, so its enclosing circle has predictable, guaranteed clearance.
+COMPACT_BASE_RADIUS = 50.0
+COMPACT_RING_COUNT = 4
+RING_SPACING = 22.0
+MAX_WOBBLE = 4.0
+MAX_PULSE_BOOST = 30.0
+# Worst-case outer edge of the compact ring set (base + spacing + wobble +
+# full pulse boost) -- a radial equalizer's inner_radius should clear this.
+COMPACT_MAX_REACH = (
+    COMPACT_BASE_RADIUS + (COMPACT_RING_COUNT - 1) * RING_SPACING + MAX_WOBBLE + MAX_PULSE_BOOST
+)
+
 
 class HexRings:
     def __init__(
         self,
         center: tuple[float, float],
-        base_radius: float = 90.0,
+        base_radius: float = DEFAULT_BASE_RADIUS,
         ring_count: int = 4,
         color: tuple[int, int, int] = (0, 220, 220),
     ) -> None:
@@ -30,6 +44,7 @@ class HexRings:
         self.sides_base = 6
         self.sides_step = 2
         self.line_thickness = 1
+        self.ring_count_locked = False
 
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
@@ -41,21 +56,34 @@ class HexRings:
         self.line_thickness = max(1, min(6, thickness))
 
     def set_shape_variant(self, ring_count: int, sides_step: int, sides_base: int = 6) -> None:
-        self.ring_count = ring_count
+        if not self.ring_count_locked:
+            self.ring_count = ring_count
         self.sides_step = sides_step
         self.sides_base = sides_base
+
+    def set_compact(self, enabled: bool) -> None:
+        """Lock to a small, fixed-count layout (used by the radial
+        equalizer, which needs predictable clearance for its enclosing
+        circle), or restore the normal variable size/count."""
+        if enabled:
+            self.ring_count_locked = True
+            self.ring_count = COMPACT_RING_COUNT
+            self.base_radius = COMPACT_BASE_RADIUS
+        else:
+            self.ring_count_locked = False
+            self.base_radius = DEFAULT_BASE_RADIUS
 
     def update(self, dt: float) -> None:
         self.time += dt
 
     def draw(self, surface: pygame.Surface) -> None:
         rotation_speed = self.rotation_speed * (1.0 + self.pulse * 3.0)
-        radius_boost = self.pulse * 30.0
+        radius_boost = self.pulse * MAX_PULSE_BOOST
 
         for i in range(self.ring_count):
             sides = max(3, self.sides_base + i * self.sides_step)
-            wobble = math.sin(self.time * 1.5 + i) * 4
-            radius = self.base_radius + i * 22 + wobble + radius_boost
+            wobble = math.sin(self.time * 1.5 + i) * MAX_WOBBLE
+            radius = self.base_radius + i * RING_SPACING + wobble + radius_boost
             rotation = self.time * rotation_speed * (1 if i % 2 == 0 else -1)
             points = regular_polygon_points(self.center, radius, sides, rotation)
 
