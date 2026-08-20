@@ -31,6 +31,9 @@ class HexRings:
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
 
+    def set_color(self, color: tuple[int, int, int]) -> None:
+        self.color = color
+
     def update(self, dt: float) -> None:
         self.time += dt
 

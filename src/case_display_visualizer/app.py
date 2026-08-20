@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 
 import pygame
 
@@ -16,6 +17,9 @@ from case_display_visualizer.sensors.audio import AudioSensor
 from case_display_visualizer.sensors.cpu import CpuSensor
 from case_display_visualizer.sensors.gpu import GpuSensor
 from case_display_visualizer.sensors.input_activity import InputActivitySensor
+from case_display_visualizer.settings import load_settings
+from case_display_visualizer.themes import get_theme
+from case_display_visualizer.tray import build_tray_icon
 
 BACKGROUND_COLOR = (5, 6, 12)
 TARGET_FPS = 60
@@ -47,6 +51,7 @@ def _set_always_on_top() -> None:
 
 def run() -> None:
     target = find_target_display()
+    settings = load_settings()
 
     pygame.init()
     pygame.display.set_caption("Case Display Visualizer")
@@ -72,6 +77,12 @@ def run() -> None:
     input_sensor = InputActivitySensor()
     composer = Composer([CpuSensor(), GpuSensor(), audio_sensor, input_sensor])
 
+    tray_icon = build_tray_icon(settings)
+    tray_thread = threading.Thread(target=tray_icon.run, daemon=True)
+    tray_thread.start()
+
+    applied_theme = None
+
     try:
         running = True
         while running:
@@ -83,6 +94,9 @@ def run() -> None:
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     running = False
 
+            if settings.quit_requested:
+                running = False
+
             # Overlay tools like Rainmeter periodically re-assert their own
             # topmost flag; keep re-winning the top spot rather than setting
             # it once at startup.
@@ -91,23 +105,43 @@ def run() -> None:
                 topmost_reassert_timer = 0.0
                 _set_always_on_top()
 
+            if settings.color_theme != applied_theme:
+                applied_theme = settings.color_theme
+                theme = get_theme(applied_theme)
+                hex_rings.set_color(theme.ring)
+                equalizer.set_colors(theme.eq_low, theme.eq_high)
+                particles.set_color(theme.particle)
+
             energy = composer.update(dt)
-            starfield.set_energy(max(energy.get("cpu"), energy.get("input") * 0.6))
-            hex_rings.set_energy(max(energy.get("gpu"), energy.get("audio")))
-            equalizer.set_bands(audio_sensor.get_bands())
 
-            burst_events = input_sensor.pop_burst_events()
-            if burst_events:
-                particles.trigger(burst_events)
+            def energy_of(name: str) -> float:
+                return energy.get(name) if settings.is_enabled(name) else 0.0
 
-            for layer in layers:
-                layer.update(dt)
+            starfield.set_energy(max(energy_of("cpu"), energy_of("input") * 0.6))
+            hex_rings.set_energy(max(energy_of("gpu"), energy_of("audio")))
+            equalizer.set_bands(
+                audio_sensor.get_bands() if settings.is_enabled("audio") else audio_sensor.get_bands() * 0
+            )
+
+            if settings.is_enabled("input"):
+                burst_events = input_sensor.pop_burst_events()
+                if burst_events:
+                    particles.trigger(burst_events)
+            else:
+                input_sensor.pop_burst_events()
+
+            visual_dt = dt * settings.speed_multiplier
+            starfield.update(visual_dt)
+            hex_rings.update(visual_dt)
+            equalizer.update(dt)
+            particles.update(dt)
 
             surface.fill(BACKGROUND_COLOR)
             for layer in layers:
                 layer.draw(surface)
             pygame.display.flip()
     finally:
+        tray_icon.stop()
         audio_sensor.close()
         input_sensor.close()
         pygame.quit()

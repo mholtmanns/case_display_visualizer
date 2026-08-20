@@ -1,0 +1,17 @@
+# Default configuration for the case display visualizer.
+#
+# To override without touching this file (e.g. for machine-specific
+# tweaks), copy this to config.local.toml -- that file is gitignored and
+# takes precedence when present.
+
+[sensors]
+cpu = true
+gpu = true
+audio = true
+input = true
+
+[display]
+# One of: slow, normal, fast
+speed = "normal"
+# One of: cyan, amber, magenta, matrix
+theme = "cyan"

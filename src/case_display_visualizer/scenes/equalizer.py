@@ -32,6 +32,12 @@ class EqualizerBars:
     def set_bands(self, bands: np.ndarray) -> None:
         self._target = bands
 
+    def set_colors(
+        self, low_color: tuple[int, int, int], high_color: tuple[int, int, int]
+    ) -> None:
+        self.low_color = low_color
+        self.high_color = high_color
+
     def update(self, dt: float) -> None:
         rising = self._target > self._display
         rate = np.where(rising, RISE_RATE, FALL_RATE)
