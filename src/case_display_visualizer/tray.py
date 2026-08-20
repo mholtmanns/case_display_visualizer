@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import math
 
 import pystray
@@ -13,8 +14,11 @@ from case_display_visualizer.settings import (
     LINE_THICKNESS_CHOICES,
     SPEED_PRESETS,
     AppSettings,
+    save_settings,
 )
 from case_display_visualizer.themes import THEME_NAMES, get_theme
+
+logger = logging.getLogger(__name__)
 
 SENSOR_LABELS = {
     "cpu": "CPU load",
@@ -50,9 +54,16 @@ def _make_icon_image(color: tuple[int, int, int] = (0, 220, 220)) -> Image.Image
 
 
 def build_tray_icon(settings: AppSettings) -> pystray.Icon:
+    def persist() -> None:
+        try:
+            save_settings(settings)
+        except OSError as exc:
+            logger.warning("Could not save settings to config.local.toml: %s", exc)
+
     def sensor_toggle(sensor_name: str):
         def handler(icon, item):
             settings.toggle_sensor(sensor_name)
+            persist()
 
         return handler
 
@@ -62,6 +73,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def speed_handler(preset_name: str):
         def handler(icon, item):
             settings.set_speed_preset(preset_name)
+            persist()
 
         return handler
 
@@ -71,6 +83,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def theme_handler(theme_name: str):
         def handler(icon, item):
             settings.set_theme(theme_name)
+            persist()
 
         return handler
 
@@ -80,6 +93,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def line_thickness_handler(thickness: int):
         def handler(icon, item):
             settings.set_line_thickness(thickness)
+            persist()
 
         return handler
 
@@ -89,6 +103,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def direction_handler(direction: str):
         def handler(icon, item):
             settings.set_starfield_direction(direction)
+            persist()
 
         return handler
 

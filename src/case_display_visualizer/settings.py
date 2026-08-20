@@ -1,11 +1,16 @@
 """Runtime-mutable settings shared between the tray icon thread and the
 render loop. Individual attribute reads/writes are atomic under the GIL, so
 no explicit locking is used for the simple cases below.
+
+Changes made at runtime (e.g. via the tray menu) are persisted to
+config.local.toml so they survive restarts -- config.toml itself is never
+written to, since it's the checked-in set of shipped defaults.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS, DEFAULT_DIRECTION
 
@@ -14,6 +19,8 @@ SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
 MIN_LINE_THICKNESS = 1
 MAX_LINE_THICKNESS = 6
 LINE_THICKNESS_CHOICES = tuple(range(MIN_LINE_THICKNESS, MAX_LINE_THICKNESS + 1))
+
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 @dataclass
@@ -37,6 +44,12 @@ class AppSettings:
     def set_speed_preset(self, preset_name: str) -> None:
         self.speed_multiplier = SPEED_PRESETS.get(preset_name, 1.0)
 
+    def speed_preset_name(self) -> str:
+        for name, value in SPEED_PRESETS.items():
+            if value == self.speed_multiplier:
+                return name
+        return "normal"
+
     def set_theme(self, theme_name: str) -> None:
         self.color_theme = theme_name
 
@@ -51,22 +64,24 @@ class AppSettings:
         self.quit_requested = True
 
 
+def _config_search_paths(config_path: str | None) -> list[Path]:
+    if config_path:
+        return [Path(config_path)]
+    return [_PROJECT_ROOT / "config.local.toml", _PROJECT_ROOT / "config.toml"]
+
+
+def local_config_path() -> Path:
+    """Path settings changes are persisted to (gitignored, machine-local)."""
+    return _PROJECT_ROOT / "config.local.toml"
+
+
 def load_settings(config_path: str | None = None) -> AppSettings:
     """Build settings, applying overrides from a TOML config file if present."""
     import tomllib
-    from pathlib import Path
 
     settings = AppSettings()
 
-    candidates = []
-    if config_path:
-        candidates.append(Path(config_path))
-    else:
-        base = Path(__file__).resolve().parent.parent.parent
-        candidates.append(base / "config.local.toml")
-        candidates.append(base / "config.toml")
-
-    for path in candidates:
+    for path in _config_search_paths(config_path):
         if path.is_file():
             with path.open("rb") as f:
                 data = tomllib.load(f)
@@ -74,6 +89,33 @@ def load_settings(config_path: str | None = None) -> AppSettings:
             break
 
     return settings
+
+
+def save_settings(settings: AppSettings, path: Path | None = None) -> None:
+    """Persist current settings to config.local.toml (or the given path)."""
+    target = path if path is not None else local_config_path()
+
+    lines = [
+        "# Machine-local overrides, written automatically when settings are",
+        "# changed via the tray icon. Safe to hand-edit; see config.toml for",
+        "# all available options and their meaning.",
+        "",
+        "[sensors]",
+    ]
+    for name in ALL_SENSORS:
+        lines.append(f"{name} = {str(settings.is_enabled(name)).lower()}")
+
+    lines += [
+        "",
+        "[display]",
+        f'speed = "{settings.speed_preset_name()}"',
+        f'theme = "{settings.color_theme}"',
+        f"line_thickness = {settings.line_thickness}",
+        f'starfield_direction = "{settings.starfield_direction}"',
+        "",
+    ]
+
+    target.write_text("\n".join(lines), encoding="utf-8")
 
 
 def _apply_config(settings: AppSettings, data: dict) -> None:

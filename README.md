@@ -69,8 +69,10 @@ Edit [config.toml](config.toml) to change defaults (which sensors start
 enabled, animation speed, color theme, ring line thickness, starfield
 direction), or copy it to `config.local.toml` for machine-specific
 overrides -- that file is gitignored and takes precedence when present.
-Tray menu changes are runtime-only and are not written back to either
-file.
+
+Changes made via the tray menu are saved automatically to
+`config.local.toml`, so they persist across restarts. `config.toml` itself
+is never modified -- it stays as the checked-in set of shipped defaults.
 
 ## Project layout
 
