@@ -21,7 +21,7 @@ Build order (see commit history for detail on each stage):
 3. [x] Desktop audio loopback + FFT equalizer visuals
 4. [x] Keyboard/mouse activity layer
 5. [x] Config file + system tray controls
-6. [ ] Visual polish (glow/bloom), scene randomization
+6. [x] Scene randomization (auto color theme cycling + ring shape variants)
 7. [ ] AI-generated imagery pipeline (future)
 
 ## Requirements

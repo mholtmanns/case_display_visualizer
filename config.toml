@@ -13,5 +13,5 @@ input = true
 [display]
 # One of: slow, normal, fast
 speed = "normal"
-# One of: cyan, amber, magenta, matrix
-theme = "cyan"
+# One of: auto (cycles through all themes over time), cyan, amber, magenta, matrix
+theme = "auto"

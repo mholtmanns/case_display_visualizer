@@ -87,6 +87,13 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
 
     theme_items = [
         pystray.MenuItem(
+            "Auto (cycles)",
+            theme_handler("auto"),
+            checked=theme_checked("auto"),
+            radio=True,
+        )
+    ] + [
+        pystray.MenuItem(
             theme_name.capitalize(),
             theme_handler(theme_name),
             checked=theme_checked(theme_name),

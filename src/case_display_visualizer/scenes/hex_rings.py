@@ -27,12 +27,19 @@ class HexRings:
         self.time = 0.0
         self.pulse = 0.0  # 0..1, driven by energy (e.g. GPU load)
         self.rotation_speed = 0.4  # rad/s at rest
+        self.sides_base = 6
+        self.sides_step = 2
 
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
 
     def set_color(self, color: tuple[int, int, int]) -> None:
         self.color = color
+
+    def set_shape_variant(self, ring_count: int, sides_step: int, sides_base: int = 6) -> None:
+        self.ring_count = ring_count
+        self.sides_step = sides_step
+        self.sides_base = sides_base
 
     def update(self, dt: float) -> None:
         self.time += dt
@@ -42,7 +49,7 @@ class HexRings:
         radius_boost = self.pulse * 30.0
 
         for i in range(self.ring_count):
-            sides = 6 + i * 2
+            sides = max(3, self.sides_base + i * self.sides_step)
             wobble = math.sin(self.time * 1.5 + i) * 4
             radius = self.base_radius + i * 22 + wobble + radius_boost
             rotation = self.time * rotation_speed * (1 if i % 2 == 0 else -1)

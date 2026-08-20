@@ -9,6 +9,7 @@ import pygame
 
 from case_display_visualizer.composer import Composer
 from case_display_visualizer.display import find_target_display
+from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
 from case_display_visualizer.scenes.hex_rings import HexRings
 from case_display_visualizer.scenes.particles import ParticleBursts
@@ -81,6 +82,9 @@ def run() -> None:
     tray_thread = threading.Thread(target=tray_icon.run, daemon=True)
     tray_thread.start()
 
+    randomizer = SceneRandomizer()
+    current_auto_theme = randomizer.next_theme()
+    hex_rings.set_shape_variant(*randomizer.next_ring_variant())
     applied_theme = None
 
     try:
@@ -105,8 +109,15 @@ def run() -> None:
                 topmost_reassert_timer = 0.0
                 _set_always_on_top()
 
-            if settings.color_theme != applied_theme:
-                applied_theme = settings.color_theme
+            if randomizer.update(dt):
+                current_auto_theme = randomizer.next_theme()
+                hex_rings.set_shape_variant(*randomizer.next_ring_variant())
+
+            effective_theme = (
+                current_auto_theme if settings.color_theme == "auto" else settings.color_theme
+            )
+            if effective_theme != applied_theme:
+                applied_theme = effective_theme
                 theme = get_theme(applied_theme)
                 hex_rings.set_color(theme.ring)
                 equalizer.set_colors(theme.eq_low, theme.eq_high)

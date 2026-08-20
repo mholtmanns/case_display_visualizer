@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from case_display_visualizer.themes import DEFAULT_THEME
-
 ALL_SENSORS = ("cpu", "gpu", "audio", "input")
 SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
 
@@ -17,7 +15,7 @@ SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
 class AppSettings:
     enabled_sensors: set[str] = field(default_factory=lambda: set(ALL_SENSORS))
     speed_multiplier: float = 1.0
-    color_theme: str = DEFAULT_THEME
+    color_theme: str = "auto"
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -73,5 +71,5 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
     speed_preset = display.get("speed", "normal")
     settings.set_speed_preset(speed_preset)
 
-    theme = display.get("theme", DEFAULT_THEME)
+    theme = display.get("theme", "auto")
     settings.set_theme(theme)
