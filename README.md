@@ -74,6 +74,15 @@ Changes made via the tray menu are saved automatically to
 `config.local.toml`, so they persist across restarts. `config.toml` itself
 is never modified -- it stays as the checked-in set of shipped defaults.
 
+### Custom color themes
+
+Copy [themes.example.toml](themes.example.toml) to `themes.local.toml` to
+add your own themes or override the built-in ones (cyan, amber, magenta,
+matrix) -- colors can be given as hex strings (`"#00DCDC"`) or `[r, g, b]`
+arrays. The file has inline comments explaining the four color roles each
+theme needs and how to name a new one; it's picked up on startup and any
+themes it defines show up in the tray icon's Theme submenu.
+
 ## Project layout
 
 ```
@@ -86,7 +95,7 @@ src/case_display_visualizer/
   display.py         Monitor detection / window placement
   composer.py         Smooths raw sensor samples into 0..1 energy values
   settings.py         Runtime settings shared with the tray icon
-  themes.py            Named color palettes
+  themes.py            Named color palettes (+ themes.local.toml overrides)
   tray.py               System tray icon and menu
   sensors/           Input sources (cpu, gpu, audio, input-activity)
   scenes/            Visual scenes (starfield, hex rings, equalizer, particles)

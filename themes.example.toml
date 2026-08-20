@@ -1,0 +1,60 @@
+# Custom / override color themes for the case display visualizer.
+#
+# This is a TEMPLATE. To actually use it, copy this file to
+# themes.local.toml in the project root -- that file is gitignored (it's
+# your personal palette collection) and is merged into the built-in themes
+# on startup. A restart is needed to pick up edits.
+#
+# Each theme needs four color "roles":
+#   ring      - color of the rotating polygon rings
+#   eq_low    - equalizer bar color at the low-frequency end (left side)
+#   eq_high   - equalizer bar color at the high-frequency end (right side)
+#   particle  - color of the burst particles triggered by key/mouse activity
+#
+# Each color can be written as either:
+#   - a hex string:      ring = "#00DCDC"   (the "#" is optional)
+#   - an [r, g, b] array: ring = [0, 220, 220]   (each 0-255)
+#
+# To ADD a new theme: add a new [themes.<name>] section below with a name
+# of your choosing (lowercase, no spaces recommended). It will then appear
+# in the tray icon's Theme submenu and can be selected via config.toml's
+# (or config.local.toml's) display.theme setting.
+#
+# To OVERRIDE a built-in theme: use one of the existing names (cyan, amber,
+# magenta, matrix) below -- your colors replace that theme's defaults.
+#
+# The four sections below are the current built-in themes, included as a
+# starting point / reference for the color format. Delete or edit any of
+# them; anything you don't list here keeps using its built-in colors.
+
+[themes.cyan]
+ring = [0, 220, 220]
+eq_low = [0, 200, 220]
+eq_high = [200, 60, 220]
+particle = [255, 200, 60]
+
+[themes.amber]
+ring = [255, 150, 0]
+eq_low = [255, 200, 0]
+eq_high = [255, 60, 30]
+particle = [255, 255, 180]
+
+[themes.magenta]
+ring = [230, 0, 200]
+eq_low = [120, 0, 220]
+eq_high = [255, 0, 140]
+particle = [255, 220, 255]
+
+[themes.matrix]
+ring = [0, 255, 100]
+eq_low = [0, 120, 40]
+eq_high = [120, 255, 120]
+particle = [200, 255, 200]
+
+# Example custom theme -- uncomment and edit to add your own:
+#
+# [themes.sunset]
+# ring = "#FF6B35"
+# eq_low = "#F7C59F"
+# eq_high = "#EFEFD0"
+# particle = "#004E89"
