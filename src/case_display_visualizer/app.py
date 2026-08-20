@@ -10,10 +10,12 @@ from case_display_visualizer.composer import Composer
 from case_display_visualizer.display import find_target_display
 from case_display_visualizer.scenes.equalizer import EqualizerBars
 from case_display_visualizer.scenes.hex_rings import HexRings
+from case_display_visualizer.scenes.particles import ParticleBursts
 from case_display_visualizer.scenes.starfield import Starfield
 from case_display_visualizer.sensors.audio import AudioSensor
 from case_display_visualizer.sensors.cpu import CpuSensor
 from case_display_visualizer.sensors.gpu import GpuSensor
+from case_display_visualizer.sensors.input_activity import InputActivitySensor
 
 BACKGROUND_COLOR = (5, 6, 12)
 TARGET_FPS = 60
@@ -63,10 +65,12 @@ def run() -> None:
     starfield = Starfield(target.width, target.height)
     hex_rings = HexRings(center=(target.width / 2, target.height / 2))
     equalizer = EqualizerBars(target.width, target.height)
-    layers = [starfield, hex_rings, equalizer]
+    particles = ParticleBursts(center=(target.width / 2, target.height / 2))
+    layers = [starfield, hex_rings, equalizer, particles]
 
     audio_sensor = AudioSensor()
-    composer = Composer([CpuSensor(), GpuSensor(), audio_sensor])
+    input_sensor = InputActivitySensor()
+    composer = Composer([CpuSensor(), GpuSensor(), audio_sensor, input_sensor])
 
     try:
         running = True
@@ -88,9 +92,13 @@ def run() -> None:
                 _set_always_on_top()
 
             energy = composer.update(dt)
-            starfield.set_energy(energy.get("cpu"))
+            starfield.set_energy(max(energy.get("cpu"), energy.get("input") * 0.6))
             hex_rings.set_energy(max(energy.get("gpu"), energy.get("audio")))
             equalizer.set_bands(audio_sensor.get_bands())
+
+            burst_events = input_sensor.pop_burst_events()
+            if burst_events:
+                particles.trigger(burst_events)
 
             for layer in layers:
                 layer.update(dt)
@@ -101,6 +109,7 @@ def run() -> None:
             pygame.display.flip()
     finally:
         audio_sensor.close()
+        input_sensor.close()
         pygame.quit()
 
     sys.exit(0)
