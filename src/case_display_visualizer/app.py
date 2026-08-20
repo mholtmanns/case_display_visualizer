@@ -8,8 +8,10 @@ import pygame
 
 from case_display_visualizer.composer import Composer
 from case_display_visualizer.display import find_target_display
+from case_display_visualizer.scenes.equalizer import EqualizerBars
 from case_display_visualizer.scenes.hex_rings import HexRings
 from case_display_visualizer.scenes.starfield import Starfield
+from case_display_visualizer.sensors.audio import AudioSensor
 from case_display_visualizer.sensors.cpu import CpuSensor
 from case_display_visualizer.sensors.gpu import GpuSensor
 
@@ -60,39 +62,45 @@ def run() -> None:
 
     starfield = Starfield(target.width, target.height)
     hex_rings = HexRings(center=(target.width / 2, target.height / 2))
-    layers = [starfield, hex_rings]
+    equalizer = EqualizerBars(target.width, target.height)
+    layers = [starfield, hex_rings, equalizer]
 
-    composer = Composer([CpuSensor(), GpuSensor()])
+    audio_sensor = AudioSensor()
+    composer = Composer([CpuSensor(), GpuSensor(), audio_sensor])
 
-    running = True
-    while running:
-        dt = clock.tick(TARGET_FPS) / 1000.0
+    try:
+        running = True
+        while running:
+            dt = clock.tick(TARGET_FPS) / 1000.0
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                running = False
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    running = False
 
-        # Overlay tools like Rainmeter periodically re-assert their own
-        # topmost flag; keep re-winning the top spot rather than setting it
-        # once at startup.
-        topmost_reassert_timer += dt
-        if topmost_reassert_timer >= 1.0:
-            topmost_reassert_timer = 0.0
-            _set_always_on_top()
+            # Overlay tools like Rainmeter periodically re-assert their own
+            # topmost flag; keep re-winning the top spot rather than setting
+            # it once at startup.
+            topmost_reassert_timer += dt
+            if topmost_reassert_timer >= 0.25:
+                topmost_reassert_timer = 0.0
+                _set_always_on_top()
 
-        energy = composer.update(dt)
-        starfield.set_energy(energy.get("cpu"))
-        hex_rings.set_energy(energy.get("gpu"))
+            energy = composer.update(dt)
+            starfield.set_energy(energy.get("cpu"))
+            hex_rings.set_energy(max(energy.get("gpu"), energy.get("audio")))
+            equalizer.set_bands(audio_sensor.get_bands())
 
-        for layer in layers:
-            layer.update(dt)
+            for layer in layers:
+                layer.update(dt)
 
-        surface.fill(BACKGROUND_COLOR)
-        for layer in layers:
-            layer.draw(surface)
-        pygame.display.flip()
+            surface.fill(BACKGROUND_COLOR)
+            for layer in layers:
+                layer.draw(surface)
+            pygame.display.flip()
+    finally:
+        audio_sensor.close()
+        pygame.quit()
 
-    pygame.quit()
     sys.exit(0)

@@ -2,3 +2,5 @@ pygame>=2.5
 screeninfo>=0.8
 psutil>=5.9
 nvidia-ml-py>=12.535
+PyAudioWPatch>=0.2.12.7
+numpy>=1.26
