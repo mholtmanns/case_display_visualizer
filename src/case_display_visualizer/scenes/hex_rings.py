@@ -29,12 +29,16 @@ class HexRings:
         self.rotation_speed = 0.4  # rad/s at rest
         self.sides_base = 6
         self.sides_step = 2
+        self.line_thickness = 1
 
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
 
     def set_color(self, color: tuple[int, int, int]) -> None:
         self.color = color
+
+    def set_line_thickness(self, thickness: int) -> None:
+        self.line_thickness = max(1, min(6, thickness))
 
     def set_shape_variant(self, ring_count: int, sides_step: int, sides_base: int = 6) -> None:
         self.ring_count = ring_count
@@ -60,4 +64,4 @@ class HexRings:
             color = tuple(
                 min(255, int(c * fade / 255 * brightness)) for c in self.color
             )
-            draw_glow_polygon(surface, points, color, width=2)
+            draw_glow_polygon(surface, points, color, width=self.line_thickness)

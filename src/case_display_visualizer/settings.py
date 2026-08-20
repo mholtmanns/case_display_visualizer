@@ -9,6 +9,9 @@ from dataclasses import dataclass, field
 
 ALL_SENSORS = ("cpu", "gpu", "audio", "input")
 SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
+MIN_LINE_THICKNESS = 1
+MAX_LINE_THICKNESS = 6
+LINE_THICKNESS_CHOICES = tuple(range(MIN_LINE_THICKNESS, MAX_LINE_THICKNESS + 1))
 
 
 @dataclass
@@ -16,6 +19,7 @@ class AppSettings:
     enabled_sensors: set[str] = field(default_factory=lambda: set(ALL_SENSORS))
     speed_multiplier: float = 1.0
     color_theme: str = "auto"
+    line_thickness: int = 1
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -32,6 +36,9 @@ class AppSettings:
 
     def set_theme(self, theme_name: str) -> None:
         self.color_theme = theme_name
+
+    def set_line_thickness(self, thickness: int) -> None:
+        self.line_thickness = max(MIN_LINE_THICKNESS, min(MAX_LINE_THICKNESS, thickness))
 
     def request_quit(self) -> None:
         self.quit_requested = True
@@ -73,3 +80,6 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
 
     theme = display.get("theme", "auto")
     settings.set_theme(theme)
+
+    line_thickness = display.get("line_thickness", MIN_LINE_THICKNESS)
+    settings.set_line_thickness(line_thickness)

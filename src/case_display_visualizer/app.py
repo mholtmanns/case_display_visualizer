@@ -137,6 +137,8 @@ def run(argv: list[str] | None = None) -> None:
                 equalizer.set_colors(theme.eq_low, theme.eq_high)
                 particles.set_color(theme.particle)
 
+            hex_rings.set_line_thickness(settings.line_thickness)
+
             energy = composer.update(dt)
 
             def energy_of(name: str) -> float:

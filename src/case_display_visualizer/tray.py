@@ -7,7 +7,12 @@ import math
 import pystray
 from PIL import Image, ImageDraw
 
-from case_display_visualizer.settings import ALL_SENSORS, SPEED_PRESETS, AppSettings
+from case_display_visualizer.settings import (
+    ALL_SENSORS,
+    LINE_THICKNESS_CHOICES,
+    SPEED_PRESETS,
+    AppSettings,
+)
 from case_display_visualizer.themes import THEME_NAMES, get_theme
 
 SENSOR_LABELS = {
@@ -62,6 +67,15 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def theme_checked(theme_name: str):
         return lambda item: settings.color_theme == theme_name
 
+    def line_thickness_handler(thickness: int):
+        def handler(icon, item):
+            settings.set_line_thickness(thickness)
+
+        return handler
+
+    def line_thickness_checked(thickness: int):
+        return lambda item: settings.line_thickness == thickness
+
     def quit_handler(icon, item):
         settings.request_quit()
         icon.stop()
@@ -102,10 +116,21 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         for theme_name in THEME_NAMES
     ]
 
+    line_thickness_items = [
+        pystray.MenuItem(
+            f"{thickness} px" + (" (default)" if thickness == 1 else ""),
+            line_thickness_handler(thickness),
+            checked=line_thickness_checked(thickness),
+            radio=True,
+        )
+        for thickness in LINE_THICKNESS_CHOICES
+    ]
+
     menu = pystray.Menu(
         pystray.MenuItem("Sensors", pystray.Menu(*sensor_items)),
         pystray.MenuItem("Speed", pystray.Menu(*speed_items)),
         pystray.MenuItem("Theme", pystray.Menu(*theme_items)),
+        pystray.MenuItem("Line thickness", pystray.Menu(*line_thickness_items)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_handler),
     )

@@ -15,3 +15,5 @@ input = true
 speed = "normal"
 # One of: auto (cycles through all themes over time), cyan, amber, magenta, matrix
 theme = "auto"
+# Line thickness of the rotating polygons, 1 (default) to 6 pixels
+line_thickness = 1

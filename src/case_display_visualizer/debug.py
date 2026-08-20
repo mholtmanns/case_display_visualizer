@@ -19,6 +19,7 @@ def dump_config(target: TargetDisplay, settings: AppSettings, windowed: bool) ->
         f"Sensors enabled: {', '.join(sorted(settings.enabled_sensors)) or 'none'}",
         f"Speed multiplier: {settings.speed_multiplier}",
         f"Color theme    : {settings.color_theme}",
+        f"Line thickness : {settings.line_thickness}px",
         "=======================================",
     ]
     print("\n".join(lines), flush=True)
