@@ -41,8 +41,10 @@ pip install -r requirements.txt
 
 ## Running
 
+From the project root (with the venv active):
+
 ```bash
-python -m case_display_visualizer
+python cdv
 ```
 
 By default the app targets a connected 800x480 monitor if one is found,
@@ -50,6 +52,15 @@ falling back to the first non-primary monitor otherwise. A system tray icon
 (sci-fi hexagon) appears once running, with a menu to toggle individual
 sensors (CPU/GPU/audio/keyboard-mouse), pick an animation speed, choose a
 color theme, and quit.
+
+### Flags
+
+```bash
+python cdv -v          # dump resolved config to the terminal on startup, then run normally
+python cdv -vv         # also print live sensor energy values, updated in-place in the terminal
+python cdv -window     # show it in a normal desktop window instead of full-screen on the case display
+python cdv -window -vv # combine flags as needed
+```
 
 ## Configuration
 
@@ -62,8 +73,11 @@ written back to either file.
 ## Project layout
 
 ```
+cdv/__main__.py     Lets `python cdv` run the app from the project root
 src/case_display_visualizer/
-  __main__.py       Entry point
+  __main__.py       Entry point for `python -m case_display_visualizer`
+  cli.py             Argument parsing (-v, -vv, -window)
+  debug.py            Startup config dump and live sensor telemetry
   app.py             Main loop wiring sensors -> composer -> renderer
   display.py         Monitor detection / window placement
   composer.py         Smooths raw sensor samples into 0..1 energy values

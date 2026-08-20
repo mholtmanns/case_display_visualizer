@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import sys
 import threading
 
 import pygame
 
+from case_display_visualizer.cli import parse_args
 from case_display_visualizer.composer import Composer
+from case_display_visualizer.debug import LiveTelemetry, dump_config
 from case_display_visualizer.display import find_target_display
 from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
@@ -50,20 +53,28 @@ def _set_always_on_top() -> None:
     )
 
 
-def run() -> None:
+def run(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    windowed = args.windowed
+    verbose = args.verbose
+
     target = find_target_display()
     settings = load_settings()
+
+    if verbose >= 1:
+        dump_config(target, settings, windowed)
 
     pygame.init()
     pygame.display.set_caption("Case Display Visualizer")
 
-    import os
-
-    os.environ["SDL_VIDEO_WINDOW_POS"] = f"{target.x},{target.y}"
-
-    flags = pygame.NOFRAME
-    surface = pygame.display.set_mode((target.width, target.height), flags)
-    _set_always_on_top()
+    if windowed:
+        flags = 0
+        surface = pygame.display.set_mode((target.width, target.height), flags)
+    else:
+        os.environ["SDL_VIDEO_WINDOW_POS"] = f"{target.x},{target.y}"
+        flags = pygame.NOFRAME
+        surface = pygame.display.set_mode((target.width, target.height), flags)
+        _set_always_on_top()
 
     clock = pygame.time.Clock()
     topmost_reassert_timer = 0.0
@@ -87,6 +98,8 @@ def run() -> None:
     hex_rings.set_shape_variant(*randomizer.next_ring_variant())
     applied_theme = None
 
+    telemetry = LiveTelemetry() if verbose >= 2 else None
+
     try:
         running = True
         while running:
@@ -101,13 +114,14 @@ def run() -> None:
             if settings.quit_requested:
                 running = False
 
-            # Overlay tools like Rainmeter periodically re-assert their own
-            # topmost flag; keep re-winning the top spot rather than setting
-            # it once at startup.
-            topmost_reassert_timer += dt
-            if topmost_reassert_timer >= 0.25:
-                topmost_reassert_timer = 0.0
-                _set_always_on_top()
+            if not windowed:
+                # Overlay tools like Rainmeter periodically re-assert their
+                # own topmost flag; keep re-winning the top spot rather than
+                # setting it once at startup.
+                topmost_reassert_timer += dt
+                if topmost_reassert_timer >= 0.25:
+                    topmost_reassert_timer = 0.0
+                    _set_always_on_top()
 
             if randomizer.update(dt):
                 current_auto_theme = randomizer.next_theme()
@@ -151,7 +165,12 @@ def run() -> None:
             for layer in layers:
                 layer.draw(surface)
             pygame.display.flip()
+
+            if telemetry is not None:
+                telemetry.update(dt, energy, settings, applied_theme, clock.get_fps())
     finally:
+        if telemetry is not None:
+            telemetry.close()
         tray_icon.stop()
         audio_sensor.close()
         input_sensor.close()
