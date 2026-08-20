@@ -60,8 +60,17 @@ direction (left/right/up/down/away/towards), and quit.
 python cdv -v          # dump resolved config to the terminal on startup, then run normally
 python cdv -vv         # also print live sensor energy values, updated in-place in the terminal
 python cdv -window     # show it in a normal desktop window instead of full-screen on the case display
+python cdv -static     # freeze every component in a fixed layout for tuning colors/settings
 python cdv -window -vv # combine flags as needed
 ```
+
+`-static` disables all sensors and animation so nothing moves: the hex rings
+sit at their default unrotated shape, the starfield is frozen in place, and
+the equalizer bars are fixed in a ramp from 5% (first bar) to 100% (last
+bar) so every bar is visible at a distinct height. Theme, line thickness,
+and starfield direction still update live from the tray menu, making it
+easy to dial in colors and settings without motion in the way. Combine with
+`-window` to preview it without needing the case display attached.
 
 ## Configuration
 

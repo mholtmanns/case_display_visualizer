@@ -22,7 +22,7 @@ from case_display_visualizer.sensors.cpu import CpuSensor
 from case_display_visualizer.sensors.gpu import GpuSensor
 from case_display_visualizer.sensors.input_activity import InputActivitySensor
 from case_display_visualizer.settings import load_settings
-from case_display_visualizer.themes import get_theme
+from case_display_visualizer.themes import DEFAULT_THEME, get_theme
 from case_display_visualizer.tray import build_tray_icon
 
 BACKGROUND_COLOR = (5, 6, 12)
@@ -56,13 +56,14 @@ def _set_always_on_top() -> None:
 def run(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     windowed = args.windowed
+    static = args.static
     verbose = args.verbose
 
     target = find_target_display()
     settings = load_settings()
 
     if verbose >= 1:
-        dump_config(target, settings, windowed)
+        dump_config(target, settings, windowed, static)
 
     pygame.init()
     pygame.display.set_caption("Case Display Visualizer")
@@ -85,20 +86,31 @@ def run(argv: list[str] | None = None) -> None:
     particles = ParticleBursts(center=(target.width / 2, target.height / 2))
     layers = [starfield, hex_rings, equalizer, particles]
 
-    audio_sensor = AudioSensor()
-    input_sensor = InputActivitySensor()
-    composer = Composer([CpuSensor(), GpuSensor(), audio_sensor, input_sensor])
+    if static:
+        # -static is for tuning colors/settings by eye: no sensors, no
+        # randomizer, no motion. The equalizer gets a fixed 5%-100% ramp
+        # (first bar to last) instead of live audio so every bar is visible
+        # at a distinct height.
+        audio_sensor = None
+        input_sensor = None
+        composer = None
+        equalizer.set_static_ramp()
+    else:
+        audio_sensor = AudioSensor()
+        input_sensor = InputActivitySensor()
+        composer = Composer([CpuSensor(), GpuSensor(), audio_sensor, input_sensor])
 
     tray_icon = build_tray_icon(settings)
     tray_thread = threading.Thread(target=tray_icon.run, daemon=True)
     tray_thread.start()
 
-    randomizer = SceneRandomizer()
-    current_auto_theme = randomizer.next_theme()
-    hex_rings.set_shape_variant(*randomizer.next_ring_variant())
+    if not static:
+        randomizer = SceneRandomizer()
+        current_auto_theme = randomizer.next_theme()
+        hex_rings.set_shape_variant(*randomizer.next_ring_variant())
     applied_theme = None
 
-    telemetry = LiveTelemetry() if verbose >= 2 else None
+    telemetry = LiveTelemetry() if verbose >= 2 and not static else None
 
     try:
         running = True
@@ -123,46 +135,67 @@ def run(argv: list[str] | None = None) -> None:
                     topmost_reassert_timer = 0.0
                     _set_always_on_top()
 
-            if randomizer.update(dt):
-                current_auto_theme = randomizer.next_theme()
-                hex_rings.set_shape_variant(*randomizer.next_ring_variant())
+            if static:
+                # Settings (theme/thickness/direction) still react live via
+                # the tray so colors can be tuned, but nothing animates and
+                # no sensors are sampled.
+                effective_theme = (
+                    settings.color_theme if settings.color_theme != "auto" else DEFAULT_THEME
+                )
+                if effective_theme != applied_theme:
+                    applied_theme = effective_theme
+                    theme = get_theme(applied_theme)
+                    hex_rings.set_color(theme.ring)
+                    equalizer.set_colors(theme.eq_low, theme.eq_high)
+                    particles.set_color(theme.particle)
 
-            effective_theme = (
-                current_auto_theme if settings.color_theme == "auto" else settings.color_theme
-            )
-            if effective_theme != applied_theme:
-                applied_theme = effective_theme
-                theme = get_theme(applied_theme)
-                hex_rings.set_color(theme.ring)
-                equalizer.set_colors(theme.eq_low, theme.eq_high)
-                particles.set_color(theme.particle)
-
-            hex_rings.set_line_thickness(settings.line_thickness)
-            starfield.set_direction(settings.starfield_direction)
-
-            energy = composer.update(dt)
-
-            def energy_of(name: str) -> float:
-                return energy.get(name) if settings.is_enabled(name) else 0.0
-
-            starfield.set_energy(max(energy_of("cpu"), energy_of("input") * 0.6))
-            hex_rings.set_energy(max(energy_of("gpu"), energy_of("audio")))
-            equalizer.set_bands(
-                audio_sensor.get_bands() if settings.is_enabled("audio") else audio_sensor.get_bands() * 0
-            )
-
-            if settings.is_enabled("input"):
-                burst_events = input_sensor.pop_burst_events()
-                if burst_events:
-                    particles.trigger(burst_events)
+                hex_rings.set_line_thickness(settings.line_thickness)
+                starfield.set_direction(settings.starfield_direction)
             else:
-                input_sensor.pop_burst_events()
+                if randomizer.update(dt):
+                    current_auto_theme = randomizer.next_theme()
+                    hex_rings.set_shape_variant(*randomizer.next_ring_variant())
 
-            visual_dt = dt * settings.speed_multiplier
-            starfield.update(visual_dt)
-            hex_rings.update(visual_dt)
-            equalizer.update(dt)
-            particles.update(dt)
+                effective_theme = (
+                    current_auto_theme
+                    if settings.color_theme == "auto"
+                    else settings.color_theme
+                )
+                if effective_theme != applied_theme:
+                    applied_theme = effective_theme
+                    theme = get_theme(applied_theme)
+                    hex_rings.set_color(theme.ring)
+                    equalizer.set_colors(theme.eq_low, theme.eq_high)
+                    particles.set_color(theme.particle)
+
+                hex_rings.set_line_thickness(settings.line_thickness)
+                starfield.set_direction(settings.starfield_direction)
+
+                energy = composer.update(dt)
+
+                def energy_of(name: str) -> float:
+                    return energy.get(name) if settings.is_enabled(name) else 0.0
+
+                starfield.set_energy(max(energy_of("cpu"), energy_of("input") * 0.6))
+                hex_rings.set_energy(max(energy_of("gpu"), energy_of("audio")))
+                equalizer.set_bands(
+                    audio_sensor.get_bands()
+                    if settings.is_enabled("audio")
+                    else audio_sensor.get_bands() * 0
+                )
+
+                if settings.is_enabled("input"):
+                    burst_events = input_sensor.pop_burst_events()
+                    if burst_events:
+                        particles.trigger(burst_events)
+                else:
+                    input_sensor.pop_burst_events()
+
+                visual_dt = dt * settings.speed_multiplier
+                starfield.update(visual_dt)
+                hex_rings.update(visual_dt)
+                equalizer.update(dt)
+                particles.update(dt)
 
             surface.fill(BACKGROUND_COLOR)
             for layer in layers:
@@ -175,8 +208,10 @@ def run(argv: list[str] | None = None) -> None:
         if telemetry is not None:
             telemetry.close()
         tray_icon.stop()
-        audio_sensor.close()
-        input_sensor.close()
+        if audio_sensor is not None:
+            audio_sensor.close()
+        if input_sensor is not None:
+            input_sensor.close()
         pygame.quit()
 
     sys.exit(0)

@@ -11,11 +11,14 @@ from case_display_visualizer.settings import AppSettings
 TELEMETRY_SENSOR_NAMES = ("cpu", "gpu", "audio", "input")
 
 
-def dump_config(target: TargetDisplay, settings: AppSettings, windowed: bool) -> None:
+def dump_config(
+    target: TargetDisplay, settings: AppSettings, windowed: bool, static: bool = False
+) -> None:
     lines = [
         "=== Case Display Visualizer config ===",
         f"Target display : {target.name} {target.width}x{target.height} @ ({target.x},{target.y})",
         f"Window mode    : {'windowed' if windowed else 'full-screen on case display'}",
+        f"Static preview : {'yes -- sensors disabled, no animation' if static else 'no'}",
         f"Sensors enabled: {', '.join(sorted(settings.enabled_sensors)) or 'none'}",
         f"Speed multiplier: {settings.speed_multiplier}",
         f"Color theme    : {settings.color_theme}",

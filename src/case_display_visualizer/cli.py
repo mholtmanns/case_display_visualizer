@@ -29,4 +29,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "full-screen on the case display"
         ),
     )
+    parser.add_argument(
+        "-static",
+        dest="static",
+        action="store_true",
+        help=(
+            "show every visualization component in a fixed, non-animated "
+            "layout (sensors disabled, equalizer bars ramped 5%%-100%%) for "
+            "tuning colors and settings without motion in the way"
+        ),
+    )
     return parser.parse_args(argv)

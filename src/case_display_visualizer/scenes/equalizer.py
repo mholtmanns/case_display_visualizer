@@ -32,6 +32,13 @@ class EqualizerBars:
     def set_bands(self, bands: np.ndarray) -> None:
         self._target = bands
 
+    def set_static_ramp(self, low: float = 0.05, high: float = 1.0) -> None:
+        """Freeze bars into a fixed low->high ramp, first bar to last, with
+        no rise/fall animation -- used by -static for tuning colors."""
+        ramp = np.linspace(low, high, self.band_count, dtype=np.float32)
+        self._target = ramp
+        self._display = ramp.copy()
+
     def set_colors(
         self, low_color: tuple[int, int, int], high_color: tuple[int, int, int]
     ) -> None:
