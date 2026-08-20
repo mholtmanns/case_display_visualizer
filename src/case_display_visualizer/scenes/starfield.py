@@ -28,6 +28,10 @@ class Starfield:
             for _ in range(star_count)
         ]
 
+    def set_energy(self, energy: float) -> None:
+        """Drive scroll speed from a 0..1 energy value (e.g. CPU load)."""
+        self.speed_multiplier = 0.5 + energy * 3.0
+
     def update(self, dt: float) -> None:
         for star in self.stars:
             star[0] -= self.base_speed * self.speed_multiplier * star[2] * dt
