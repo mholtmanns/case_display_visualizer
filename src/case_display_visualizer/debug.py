@@ -20,6 +20,7 @@ def dump_config(target: TargetDisplay, settings: AppSettings, windowed: bool) ->
         f"Speed multiplier: {settings.speed_multiplier}",
         f"Color theme    : {settings.color_theme}",
         f"Line thickness : {settings.line_thickness}px",
+        f"Starfield dir. : {settings.starfield_direction}",
         "=======================================",
     ]
     print("\n".join(lines), flush=True)

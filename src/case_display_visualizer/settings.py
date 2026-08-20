@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS, DEFAULT_DIRECTION
+
 ALL_SENSORS = ("cpu", "gpu", "audio", "input")
 SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
 MIN_LINE_THICKNESS = 1
@@ -20,6 +22,7 @@ class AppSettings:
     speed_multiplier: float = 1.0
     color_theme: str = "auto"
     line_thickness: int = 1
+    starfield_direction: str = DEFAULT_DIRECTION
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -39,6 +42,10 @@ class AppSettings:
 
     def set_line_thickness(self, thickness: int) -> None:
         self.line_thickness = max(MIN_LINE_THICKNESS, min(MAX_LINE_THICKNESS, thickness))
+
+    def set_starfield_direction(self, direction: str) -> None:
+        if direction in ALL_DIRECTIONS:
+            self.starfield_direction = direction
 
     def request_quit(self) -> None:
         self.quit_requested = True
@@ -83,3 +90,6 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
 
     line_thickness = display.get("line_thickness", MIN_LINE_THICKNESS)
     settings.set_line_thickness(line_thickness)
+
+    starfield_direction = display.get("starfield_direction", DEFAULT_DIRECTION)
+    settings.set_starfield_direction(starfield_direction)

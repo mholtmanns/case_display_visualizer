@@ -138,6 +138,7 @@ def run(argv: list[str] | None = None) -> None:
                 particles.set_color(theme.particle)
 
             hex_rings.set_line_thickness(settings.line_thickness)
+            starfield.set_direction(settings.starfield_direction)
 
             energy = composer.update(dt)
 

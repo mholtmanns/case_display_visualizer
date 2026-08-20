@@ -51,7 +51,8 @@ By default the app targets a connected 800x480 monitor if one is found,
 falling back to the first non-primary monitor otherwise. A system tray icon
 (sci-fi hexagon) appears once running, with a menu to toggle individual
 sensors (CPU/GPU/audio/keyboard-mouse), pick an animation speed, choose a
-color theme, set the ring line thickness (1-6px), and quit.
+color theme, set the ring line thickness (1-6px), pick the starfield
+direction (left/right/up/down/away/towards), and quit.
 
 ### Flags
 
@@ -65,10 +66,11 @@ python cdv -window -vv # combine flags as needed
 ## Configuration
 
 Edit [config.toml](config.toml) to change defaults (which sensors start
-enabled, animation speed, color theme, ring line thickness), or copy it to
-`config.local.toml` for machine-specific overrides -- that file is
-gitignored and takes precedence when present. Tray menu changes are
-runtime-only and are not written back to either file.
+enabled, animation speed, color theme, ring line thickness, starfield
+direction), or copy it to `config.local.toml` for machine-specific
+overrides -- that file is gitignored and takes precedence when present.
+Tray menu changes are runtime-only and are not written back to either
+file.
 
 ## Project layout
 

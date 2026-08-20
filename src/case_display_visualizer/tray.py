@@ -7,6 +7,7 @@ import math
 import pystray
 from PIL import Image, ImageDraw
 
+from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS
 from case_display_visualizer.settings import (
     ALL_SENSORS,
     LINE_THICKNESS_CHOICES,
@@ -20,6 +21,15 @@ SENSOR_LABELS = {
     "gpu": "GPU load",
     "audio": "Desktop audio",
     "input": "Keyboard / mouse",
+}
+
+DIRECTION_LABELS = {
+    "left": "Left (default)",
+    "right": "Right",
+    "up": "Up",
+    "down": "Down",
+    "away": "Away (tunnel)",
+    "towards": "Towards (tunnel)",
 }
 
 
@@ -76,6 +86,15 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def line_thickness_checked(thickness: int):
         return lambda item: settings.line_thickness == thickness
 
+    def direction_handler(direction: str):
+        def handler(icon, item):
+            settings.set_starfield_direction(direction)
+
+        return handler
+
+    def direction_checked(direction: str):
+        return lambda item: settings.starfield_direction == direction
+
     def quit_handler(icon, item):
         settings.request_quit()
         icon.stop()
@@ -126,11 +145,22 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         for thickness in LINE_THICKNESS_CHOICES
     ]
 
+    direction_items = [
+        pystray.MenuItem(
+            DIRECTION_LABELS[direction],
+            direction_handler(direction),
+            checked=direction_checked(direction),
+            radio=True,
+        )
+        for direction in ALL_DIRECTIONS
+    ]
+
     menu = pystray.Menu(
         pystray.MenuItem("Sensors", pystray.Menu(*sensor_items)),
         pystray.MenuItem("Speed", pystray.Menu(*speed_items)),
         pystray.MenuItem("Theme", pystray.Menu(*theme_items)),
         pystray.MenuItem("Line thickness", pystray.Menu(*line_thickness_items)),
+        pystray.MenuItem("Starfield direction", pystray.Menu(*direction_items)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_handler),
     )

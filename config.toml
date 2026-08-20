@@ -17,3 +17,6 @@ speed = "normal"
 theme = "auto"
 # Line thickness of the rotating polygons, 1 (default) to 6 pixels
 line_thickness = 1
+# Starfield scroll direction. One of: left (default), right, up, down,
+# away (tunnel effect, receding), towards (tunnel effect, warp speed)
+starfield_direction = "left"
