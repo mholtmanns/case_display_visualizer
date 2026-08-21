@@ -23,6 +23,11 @@
 # To OVERRIDE a built-in theme: use one of the existing names (cyan, amber,
 # magenta, matrix) below -- your colors replace that theme's defaults.
 #
+# "prism" and "aurora" are reserved for the built-in rainbow modes (hue
+# cycling through the color spectrum, synced or chasing) and can't be used
+# as custom theme names -- an entry using either name is skipped with a
+# warning at startup.
+#
 # The four sections below are the current built-in themes, included as a
 # starting point / reference for the color format. Delete or edit any of
 # them; anything you don't list here keeps using its built-in colors.

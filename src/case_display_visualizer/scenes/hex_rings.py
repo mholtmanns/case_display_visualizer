@@ -45,12 +45,18 @@ class HexRings:
         self.sides_step = 2
         self.line_thickness = 1
         self.ring_count_locked = False
+        self.ring_colors: list[tuple[int, int, int]] | None = None
 
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
 
     def set_color(self, color: tuple[int, int, int]) -> None:
         self.color = color
+
+    def set_ring_colors(self, colors: list[tuple[int, int, int]] | None) -> None:
+        """Per-ring color override (e.g. for rainbow "aurora" chase mode);
+        pass None to fall back to the single uniform color from set_color()."""
+        self.ring_colors = colors
 
     def set_line_thickness(self, thickness: int) -> None:
         self.line_thickness = max(1, min(6, thickness))
@@ -87,9 +93,12 @@ class HexRings:
             rotation = self.time * rotation_speed * (1 if i % 2 == 0 else -1)
             points = regular_polygon_points(self.center, radius, sides, rotation)
 
+            base_color = (
+                self.ring_colors[i % len(self.ring_colors)] if self.ring_colors else self.color
+            )
             fade = max(60, 255 - i * 45)
             brightness = 1.0 + self.pulse * 0.8
             color = tuple(
-                min(255, int(c * fade / 255 * brightness)) for c in self.color
+                min(255, int(c * fade / 255 * brightness)) for c in base_color
             )
             draw_glow_polygon(surface, points, color, width=self.line_thickness)

@@ -47,6 +47,7 @@ class EqualizerBars:
         self._target = np.zeros(band_count, dtype=np.float32)
         self._display = np.zeros(band_count, dtype=np.float32)
         self._rotation = 0.0
+        self.band_colors: list[tuple[int, int, int]] | None = None
 
     def set_bands(self, bands: np.ndarray) -> None:
         self._target = bands
@@ -64,6 +65,11 @@ class EqualizerBars:
         self.low_color = low_color
         self.high_color = high_color
 
+    def set_band_colors(self, colors: list[tuple[int, int, int]] | None) -> None:
+        """Per-band color override (e.g. for rainbow "aurora" chase mode);
+        pass None to fall back to the low->high gradient from set_colors()."""
+        self.band_colors = colors
+
     def set_style(self, style: str, inner_radius: float | None = None) -> None:
         if style in STYLES:
             self.style = style
@@ -79,6 +85,8 @@ class EqualizerBars:
         self._rotation = (self._rotation + RADIAL_ROTATION_SPEED * dt) % (2 * math.pi)
 
     def _color_for(self, index: int) -> tuple[int, int, int]:
+        if self.band_colors:
+            return self.band_colors[index % len(self.band_colors)]
         t = index / max(1, self.band_count - 1)
         return tuple(
             int(self.low_color[c] + (self.high_color[c] - self.low_color[c]) * t)

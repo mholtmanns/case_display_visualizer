@@ -8,6 +8,7 @@ import math
 import pystray
 from PIL import Image, ImageDraw
 
+from case_display_visualizer.rainbow import RAINBOW_MODES
 from case_display_visualizer.scenes.equalizer import STYLES as EQUALIZER_STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS
 from case_display_visualizer.settings import (
@@ -40,6 +41,11 @@ DIRECTION_LABELS = {
 EQUALIZER_STYLE_LABELS = {
     "bottom": "Bottom bar (default)",
     "radial": "Radial (around rings)",
+}
+
+RAINBOW_MODE_LABELS = {
+    "prism": "Prism (rainbow, synced)",
+    "aurora": "Aurora (rainbow, chase)",
 }
 
 
@@ -149,22 +155,34 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         for preset_name in SPEED_PRESETS
     ]
 
-    theme_items = [
-        pystray.MenuItem(
-            "Auto (cycles)",
-            theme_handler("auto"),
-            checked=theme_checked("auto"),
-            radio=True,
-        )
-    ] + [
-        pystray.MenuItem(
-            theme_name.capitalize(),
-            theme_handler(theme_name),
-            checked=theme_checked(theme_name),
-            radio=True,
-        )
-        for theme_name in THEME_NAMES
-    ]
+    theme_items = (
+        [
+            pystray.MenuItem(
+                "Auto (cycles)",
+                theme_handler("auto"),
+                checked=theme_checked("auto"),
+                radio=True,
+            )
+        ]
+        + [
+            pystray.MenuItem(
+                theme_name.capitalize(),
+                theme_handler(theme_name),
+                checked=theme_checked(theme_name),
+                radio=True,
+            )
+            for theme_name in THEME_NAMES
+        ]
+        + [
+            pystray.MenuItem(
+                RAINBOW_MODE_LABELS[mode],
+                theme_handler(mode),
+                checked=theme_checked(mode),
+                radio=True,
+            )
+            for mode in RAINBOW_MODES
+        ]
+    )
 
     line_thickness_items = [
         pystray.MenuItem(

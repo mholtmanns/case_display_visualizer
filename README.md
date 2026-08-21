@@ -107,6 +107,20 @@ arrays. The file has inline comments explaining the four color roles each
 theme needs and how to name a new one; it's picked up on startup and any
 themes it defines show up in the tray icon's Theme submenu.
 
+### Rainbow themes
+
+Two more theme options cycle continuously through the color spectrum
+instead of using fixed colors, like an RGB case-lighting "rainbow" mode:
+
+- `prism` -- every ring, bar, and particle shares the same hue, shifting
+  together over time (a single synced color sweep)
+- `aurora` -- each ring and each equalizer band gets a hue offset by its
+  position, so color visibly chases across them as the base hue advances
+
+Both cycle at a rate tied to the existing Speed setting (slow/normal/fast),
+so no separate speed control is needed. `prism`/`aurora` are reserved
+names and can't be used for a custom theme in `themes.local.toml`.
+
 ## Project layout
 
 ```
@@ -120,6 +134,7 @@ src/case_display_visualizer/
   composer.py         Smooths raw sensor samples into 0..1 energy values
   settings.py         Runtime settings shared with the tray icon
   themes.py            Named color palettes (+ themes.local.toml overrides)
+  rainbow.py            Hue-cycling colors for the prism/aurora theme modes
   tray.py               System tray icon and menu
   sensors/           Input sources (cpu, gpu, audio, input-activity)
   scenes/            Visual scenes (starfield, hex rings, equalizer, particles)

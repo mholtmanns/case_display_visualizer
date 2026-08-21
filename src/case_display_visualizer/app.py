@@ -12,6 +12,7 @@ from case_display_visualizer.cli import parse_args
 from case_display_visualizer.composer import Composer
 from case_display_visualizer.debug import LiveTelemetry, dump_config
 from case_display_visualizer.display import find_target_display
+from case_display_visualizer.rainbow import is_rainbow_mode, rainbow_color
 from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
 from case_display_visualizer.scenes.hex_rings import COMPACT_MAX_REACH, HexRings
@@ -64,6 +65,47 @@ def _apply_equalizer_style(style: str, hex_rings: HexRings, equalizer: Equalizer
     is_radial = style == "radial"
     hex_rings.set_compact(is_radial)
     equalizer.set_style(style, inner_radius=RADIAL_EQUALIZER_INNER_RADIUS)
+
+
+def _apply_theme(
+    color_theme: str,
+    effective_static_theme: str,
+    rainbow_elapsed: float,
+    applied_theme: str | None,
+    hex_rings: HexRings,
+    equalizer: EqualizerBars,
+    particles: ParticleBursts,
+) -> str:
+    """Applies either a concrete named theme (once, only when it changes) or
+    continuously recomputed rainbow colors (every call, since it animates).
+    Returns the new applied_theme to track.
+    """
+    if is_rainbow_mode(color_theme):
+        hex_rings.set_ring_colors(
+            [
+                rainbow_color(rainbow_elapsed, color_theme, i, hex_rings.ring_count)
+                for i in range(hex_rings.ring_count)
+            ]
+        )
+        equalizer.set_band_colors(
+            [
+                rainbow_color(rainbow_elapsed, color_theme, i, equalizer.band_count)
+                for i in range(equalizer.band_count)
+            ]
+        )
+        particles.set_color(rainbow_color(rainbow_elapsed, color_theme))
+        return color_theme
+
+    if effective_static_theme != applied_theme:
+        theme = get_theme(effective_static_theme)
+        hex_rings.set_color(theme.ring)
+        hex_rings.set_ring_colors(None)
+        equalizer.set_colors(theme.eq_low, theme.eq_high)
+        equalizer.set_band_colors(None)
+        particles.set_color(theme.particle)
+        return effective_static_theme
+
+    return applied_theme
 
 
 def run(argv: list[str] | None = None) -> None:
@@ -123,6 +165,7 @@ def run(argv: list[str] | None = None) -> None:
         hex_rings.set_shape_variant(*randomizer.next_ring_variant())
     applied_theme = None
     applied_equalizer_style = None
+    rainbow_elapsed = 0.0
 
     telemetry = LiveTelemetry() if verbose >= 2 and not static else None
 
@@ -140,6 +183,8 @@ def run(argv: list[str] | None = None) -> None:
             if settings.quit_requested:
                 running = False
 
+            visual_dt = dt * settings.speed_multiplier
+
             if not windowed:
                 # Overlay tools like Rainmeter periodically re-assert their
                 # own topmost flag; keep re-winning the top spot rather than
@@ -156,12 +201,15 @@ def run(argv: list[str] | None = None) -> None:
                 effective_theme = (
                     settings.color_theme if settings.color_theme != "auto" else DEFAULT_THEME
                 )
-                if effective_theme != applied_theme:
-                    applied_theme = effective_theme
-                    theme = get_theme(applied_theme)
-                    hex_rings.set_color(theme.ring)
-                    equalizer.set_colors(theme.eq_low, theme.eq_high)
-                    particles.set_color(theme.particle)
+                applied_theme = _apply_theme(
+                    settings.color_theme,
+                    effective_theme,
+                    rainbow_elapsed,
+                    applied_theme,
+                    hex_rings,
+                    equalizer,
+                    particles,
+                )
 
                 hex_rings.set_line_thickness(settings.line_thickness)
                 starfield.set_direction(settings.starfield_direction)
@@ -179,12 +227,16 @@ def run(argv: list[str] | None = None) -> None:
                     if settings.color_theme == "auto"
                     else settings.color_theme
                 )
-                if effective_theme != applied_theme:
-                    applied_theme = effective_theme
-                    theme = get_theme(applied_theme)
-                    hex_rings.set_color(theme.ring)
-                    equalizer.set_colors(theme.eq_low, theme.eq_high)
-                    particles.set_color(theme.particle)
+                rainbow_elapsed += visual_dt
+                applied_theme = _apply_theme(
+                    settings.color_theme,
+                    effective_theme,
+                    rainbow_elapsed,
+                    applied_theme,
+                    hex_rings,
+                    equalizer,
+                    particles,
+                )
 
                 hex_rings.set_line_thickness(settings.line_thickness)
                 starfield.set_direction(settings.starfield_direction)
@@ -213,7 +265,6 @@ def run(argv: list[str] | None = None) -> None:
                 else:
                     input_sensor.pop_burst_events()
 
-                visual_dt = dt * settings.speed_multiplier
                 starfield.update(visual_dt)
                 hex_rings.update(visual_dt)
                 equalizer.update(dt)

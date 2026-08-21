@@ -13,7 +13,12 @@ input = true
 [display]
 # One of: slow, normal, fast
 speed = "normal"
-# One of: auto (cycles through all themes over time), cyan, amber, magenta, matrix
+# One of:
+#   auto        - cycles through the named themes below over time
+#   cyan, amber, magenta, matrix (or any theme from themes.local.toml)
+#   prism       - rainbow: every element shares one hue, shifting together
+#   aurora      - rainbow: hue sweeps/chases across rings and equalizer bands
+# Rainbow cycle speed follows the "speed" setting above.
 theme = "auto"
 # Line thickness of the rotating polygons, 1 (default) to 6 pixels
 line_thickness = 1

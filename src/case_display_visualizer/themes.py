@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from case_display_visualizer.rainbow import RAINBOW_MODES
+
 logger = logging.getLogger(__name__)
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -87,6 +89,13 @@ def _load_local_themes(path: Path | None = None) -> dict[str, Theme]:
 
     themes: dict[str, Theme] = {}
     for name, colors in data.get("themes", {}).items():
+        if name in RAINBOW_MODES:
+            logger.warning(
+                "Skipping theme %r in themes.local.toml: name is reserved for the "
+                "built-in rainbow mode",
+                name,
+            )
+            continue
         try:
             themes[name] = Theme(
                 ring=_parse_color(colors["ring"]),
