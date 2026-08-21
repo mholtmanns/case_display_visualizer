@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from case_display_visualizer.paths import app_base_dir, bundled_resource_dir
 from case_display_visualizer.scenes.equalizer import DEFAULT_STYLE, STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS, DEFAULT_DIRECTION
 
@@ -20,8 +21,6 @@ SPEED_PRESETS = {"slow": 0.5, "normal": 1.0, "fast": 2.0}
 MIN_LINE_THICKNESS = 1
 MAX_LINE_THICKNESS = 6
 LINE_THICKNESS_CHOICES = tuple(range(MIN_LINE_THICKNESS, MAX_LINE_THICKNESS + 1))
-
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 @dataclass
@@ -77,12 +76,16 @@ class AppSettings:
 def _config_search_paths(config_path: str | None) -> list[Path]:
     if config_path:
         return [Path(config_path)]
-    return [_PROJECT_ROOT / "config.local.toml", _PROJECT_ROOT / "config.toml"]
+    return [
+        app_base_dir() / "config.local.toml",
+        bundled_resource_dir() / "config.toml",
+    ]
 
 
 def local_config_path() -> Path:
-    """Path settings changes are persisted to (gitignored, machine-local)."""
-    return _PROJECT_ROOT / "config.local.toml"
+    """Path settings changes are persisted to: next to the .exe when
+    frozen, the project root's (gitignored) config.local.toml otherwise."""
+    return app_base_dir() / "config.local.toml"
 
 
 def load_settings(config_path: str | None = None) -> AppSettings:

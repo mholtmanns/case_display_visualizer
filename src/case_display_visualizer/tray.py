@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import logging
-import math
 
 import pystray
-from PIL import Image, ImageDraw
 
+from case_display_visualizer.icon import build_icon_image
 from case_display_visualizer.rainbow import RAINBOW_MODES
 from case_display_visualizer.scenes.equalizer import STYLES as EQUALIZER_STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS
@@ -47,22 +46,6 @@ RAINBOW_MODE_LABELS = {
     "prism": "Prism (rainbow, synced)",
     "aurora": "Aurora (rainbow, chase)",
 }
-
-
-def _make_icon_image(color: tuple[int, int, int] = (0, 220, 220)) -> Image.Image:
-    size = 64
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    cx, cy, r = size / 2, size / 2, size / 2 - 4
-    points = [
-        (
-            cx + r * math.cos(math.radians(60 * i - 90)),
-            cy + r * math.sin(math.radians(60 * i - 90)),
-        )
-        for i in range(6)
-    ]
-    draw.polygon(points, outline=color, width=3)
-    return img
 
 
 def build_tray_icon(settings: AppSettings) -> pystray.Icon:
@@ -238,7 +221,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     icon_color = get_theme(settings.color_theme).ring
     return pystray.Icon(
         "case_display_visualizer",
-        _make_icon_image(icon_color),
+        build_icon_image(icon_color, size=64),
         "Case Display Visualizer",
         menu,
     )

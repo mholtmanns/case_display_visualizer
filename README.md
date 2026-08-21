@@ -74,6 +74,41 @@ and starfield direction still update live from the tray menu, making it
 easy to dial in colors and settings without motion in the way. Combine with
 `-window` to preview it without needing the case display attached.
 
+## Running as a standalone app (double-click, no console)
+
+To run it like a normal Windows app -- double-click an icon, no terminal
+window, correct icon in the taskbar -- build a standalone `.exe`:
+
+```powershell
+.venv\Scripts\pip install pyinstaller
+powershell -ExecutionPolicy Bypass -File scripts\build_exe.ps1
+```
+
+This produces `dist\CaseDisplayVisualizer.exe`: a single self-contained
+file (no Python install needed to run it) with the hexagon icon baked in
+as a proper PE resource. Double-click it directly, or run the following to
+drop a desktop shortcut pointing at it:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\create_shortcut.ps1
+```
+
+You can then pin that shortcut (or the `.exe` itself) to the taskbar or
+Start menu like any other app. `config.local.toml`/`themes.local.toml` are
+read from and written next to wherever the `.exe` is run from, so they
+persist across restarts the same way as running from source.
+
+Why a compiled `.exe` and not just a shortcut to `pythonw.exe`? Windows
+determines a running window's taskbar icon primarily from the icon baked
+into the launching `.exe`'s own resources, not from anything a Python GUI
+sets at runtime (`pygame.display.set_icon()` correctly updates the title
+bar and Alt-Tab icon, but not the taskbar button) -- a raw
+`python.exe`/`pythonw.exe` process always shows the interpreter's own icon
+on the taskbar no matter what. Compiling avoids that entirely. A
+`pythonw.exe`-based shortcut still works for double-click, console-free
+launching (`create_shortcut.ps1` falls back to one automatically if you
+skip the build step) -- it just won't have the right taskbar icon.
+
 ## Configuration
 
 Edit [config.toml](config.toml) to change defaults (which sensors start
@@ -143,17 +178,24 @@ names and can't be used for a custom theme in `themes.local.toml`.
 
 ```
 cdv/__main__.py     Lets `python cdv` run the app from the project root
+assets/app_icon.ico  App icon, baked into the .exe and used by shortcuts
+scripts/
+  generate_icon.py    Regenerates assets/app_icon.ico from icon.py's design
+  build_exe.ps1        Builds dist\CaseDisplayVisualizer.exe (PyInstaller)
+  create_shortcut.ps1  Drops a desktop shortcut to the exe (or venv fallback)
 src/case_display_visualizer/
   __main__.py       Entry point for `python -m case_display_visualizer`
   cli.py             Argument parsing (-v, -vv, -window)
   debug.py            Startup config dump and live sensor telemetry
   app.py             Main loop wiring sensors -> composer -> renderer
   display.py         Monitor detection / window placement
+  paths.py            Where config/theme overrides live (source vs. frozen .exe)
   composer.py         Smooths raw sensor samples into 0..1 energy values
   settings.py         Runtime settings shared with the tray icon
   themes.py            Named color palettes (+ themes.local.toml overrides)
   rainbow.py            Hue-cycling colors for the prism/aurora theme modes
   wander.py              Smooth Catmull-Rom wander path for the shared center
+  icon.py                Shared hexagon icon design (tray/window/.ico all use it)
   tray.py               System tray icon and menu
   sensors/           Input sources (cpu, gpu, audio, input-activity)
   scenes/            Visual scenes (starfield, hex rings, equalizer, particles)

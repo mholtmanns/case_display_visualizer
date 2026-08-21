@@ -12,6 +12,7 @@ from case_display_visualizer.cli import parse_args
 from case_display_visualizer.composer import Composer
 from case_display_visualizer.debug import LiveTelemetry, dump_config
 from case_display_visualizer.display import find_target_display
+from case_display_visualizer.icon import build_icon_image
 from case_display_visualizer.rainbow import is_rainbow_mode, rainbow_color
 from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
@@ -37,6 +38,26 @@ RADIAL_EQUALIZER_INNER_RADIUS = COMPACT_MAX_REACH + RADIAL_EQUALIZER_MARGIN
 _HWND_TOPMOST = -1
 _SWP_NOMOVE = 0x0002
 _SWP_NOSIZE = 0x0001
+
+
+def _set_app_user_model_id() -> None:
+    """Give this process its own taskbar identity.
+
+    Without this, Windows groups a raw python.exe/pythonw.exe process under
+    the interpreter's own icon for the taskbar button, ignoring the window
+    icon set via pygame.display.set_icon() (title bar/Alt+Tab pick it up
+    fine either way -- only the taskbar button needs this).
+    """
+    if sys.platform != "win32":
+        return
+    import ctypes
+
+    try:
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "CaseDisplayVisualizer.App"
+        )
+    except OSError:
+        pass
 
 
 def _set_always_on_top() -> None:
@@ -121,8 +142,15 @@ def run(argv: list[str] | None = None) -> None:
     if verbose >= 1:
         dump_config(target, settings, windowed, static)
 
+    _set_app_user_model_id()
+
     pygame.init()
     pygame.display.set_caption("Case Display Visualizer")
+
+    icon_image = build_icon_image(size=64)
+    pygame.display.set_icon(
+        pygame.image.fromstring(icon_image.tobytes(), icon_image.size, icon_image.mode)
+    )
 
     if windowed:
         flags = 0

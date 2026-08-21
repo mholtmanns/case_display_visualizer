@@ -13,11 +13,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from case_display_visualizer.paths import app_base_dir
 from case_display_visualizer.rainbow import RAINBOW_MODES
 
 logger = logging.getLogger(__name__)
-
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 @dataclass(frozen=True)
@@ -78,7 +77,7 @@ def _parse_color(value: Any) -> tuple[int, int, int]:
 
 
 def _load_local_themes(path: Path | None = None) -> dict[str, Theme]:
-    target = path if path is not None else _PROJECT_ROOT / "themes.local.toml"
+    target = path if path is not None else app_base_dir() / "themes.local.toml"
     if not target.is_file():
         return {}
 
