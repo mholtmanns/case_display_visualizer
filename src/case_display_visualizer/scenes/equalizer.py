@@ -11,6 +11,11 @@ import pygame
 
 RISE_RATE = 18.0  # per second, how fast bars jump up
 FALL_RATE = 4.0  # per second, how fast bars settle back down
+# Slow continuous spin for the radial layout, rad/s (~50s per revolution).
+# Most audio energy tends to sit in the same low-frequency bands, so a
+# fixed angular mapping would leave the same few bars doing all the work;
+# rotating keeps it visually dynamic.
+RADIAL_ROTATION_SPEED = 0.125
 
 STYLES = ("bottom", "radial")
 DEFAULT_STYLE = "bottom"
@@ -41,6 +46,7 @@ class EqualizerBars:
 
         self._target = np.zeros(band_count, dtype=np.float32)
         self._display = np.zeros(band_count, dtype=np.float32)
+        self._rotation = 0.0
 
     def set_bands(self, bands: np.ndarray) -> None:
         self._target = bands
@@ -69,6 +75,8 @@ class EqualizerBars:
         rate = np.where(rising, RISE_RATE, FALL_RATE)
         blend = np.clip(rate * dt, 0.0, 1.0)
         self._display += (self._target - self._display) * blend
+
+        self._rotation = (self._rotation + RADIAL_ROTATION_SPEED * dt) % (2 * math.pi)
 
     def _color_for(self, index: int) -> tuple[int, int, int]:
         t = index / max(1, self.band_count - 1)
@@ -110,8 +118,8 @@ class EqualizerBars:
 
         for i, value in enumerate(self._display):
             length = max(2.0, float(value) * self.max_bar_height)
-            # Start at 12 o'clock, go clockwise.
-            angle = (i / self.band_count) * 2 * math.pi - math.pi / 2
+            # Start at 12 o'clock, go clockwise, plus the slow continuous spin.
+            angle = (i / self.band_count) * 2 * math.pi - math.pi / 2 + self._rotation
 
             cos_a, sin_a = math.cos(angle), math.sin(angle)
             perp_x, perp_y = -sin_a, cos_a

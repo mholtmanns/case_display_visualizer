@@ -85,11 +85,14 @@ when present.
 
 Setting `equalizer_style = "radial"` (config or tray) moves the audio bars
 from the bottom edge to a circle enclosing the hex rings, radiating
-outward -- low frequencies at 12 o'clock, going clockwise to high
-frequencies. In this mode the rings are locked to a fixed count of 4 and
-shrunk so the enclosing circle has guaranteed clearance; switching back to
-`"bottom"` restores the rings' normal variable size/count. Loud audio can
-push bars past the screen edge in this mode -- that's expected, not a bug.
+outward as bars the same width as the bottom layout -- low frequencies at
+12 o'clock, going clockwise to high frequencies. The whole ring slowly
+rotates (~50s per revolution) so the visual doesn't stay static just
+because most audio energy tends to sit in the same low-frequency bands.
+In this mode the rings are locked to a fixed count of 4 and shrunk so the
+enclosing circle has guaranteed clearance; switching back to `"bottom"`
+restores the rings' normal variable size/count. Loud audio can push bars
+past the screen edge in this mode -- that's expected, not a bug.
 
 Changes made via the tray menu are saved automatically to
 `config.local.toml`, so they persist across restarts. `config.toml` itself
