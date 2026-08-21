@@ -35,3 +35,6 @@ equalizer_style = "bottom"
 # tunnel starfield) slowly wanders around the screen instead of staying
 # fixed in the middle.
 moving_center = true
+# Rendering depth. Only "2d" (current, default) is available right now;
+# "3d" is reserved for future work and can't be selected yet.
+depth = "2d"

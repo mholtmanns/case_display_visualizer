@@ -12,6 +12,8 @@ from case_display_visualizer.scenes.equalizer import STYLES as EQUALIZER_STYLES
 from case_display_visualizer.scenes.starfield import ALL_DIRECTIONS
 from case_display_visualizer.settings import (
     ALL_SENSORS,
+    AVAILABLE_DEPTH_OPTIONS,
+    DEPTH_OPTIONS,
     LINE_THICKNESS_CHOICES,
     SPEED_PRESETS,
     AppSettings,
@@ -45,6 +47,11 @@ EQUALIZER_STYLE_LABELS = {
 RAINBOW_MODE_LABELS = {
     "prism": "Prism (rainbow, synced)",
     "aurora": "Aurora (rainbow, chase)",
+}
+
+DEPTH_LABELS = {
+    "2d": "2D (default)",
+    "3d": "3D (coming soon)",
 }
 
 
@@ -121,6 +128,16 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
 
     def moving_center_checked(item):
         return settings.moving_center
+
+    def depth_handler(depth: str):
+        def handler(icon, item):
+            settings.set_depth(depth)
+            persist()
+
+        return handler
+
+    def depth_checked(depth: str):
+        return lambda item: settings.depth == depth
 
     def quit_handler(icon, item):
         settings.request_quit()
@@ -204,6 +221,17 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         for style in EQUALIZER_STYLES
     ]
 
+    depth_items = [
+        pystray.MenuItem(
+            DEPTH_LABELS[depth],
+            depth_handler(depth),
+            checked=depth_checked(depth),
+            radio=True,
+            enabled=depth in AVAILABLE_DEPTH_OPTIONS,
+        )
+        for depth in DEPTH_OPTIONS
+    ]
+
     menu = pystray.Menu(
         pystray.MenuItem("Sensors", pystray.Menu(*sensor_items)),
         pystray.MenuItem("Speed", pystray.Menu(*speed_items)),
@@ -214,6 +242,7 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         pystray.MenuItem(
             "Moving center", moving_center_handler, checked=moving_center_checked
         ),
+        pystray.MenuItem("Depth", pystray.Menu(*depth_items)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_handler),
     )

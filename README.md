@@ -54,7 +54,7 @@ sensors (CPU/GPU/audio/keyboard-mouse), pick an animation speed, choose a
 color theme, set the ring line thickness (1-6px), pick the starfield
 direction (left/right/up/down/away/towards), choose the equalizer layout
 (bottom bar / radial around the rings), toggle the moving center on/off,
-and quit.
+pick the render depth (2D/3D -- see below), and quit.
 
 ### Flags
 
@@ -173,6 +173,13 @@ instead of using fixed colors, like an RGB case-lighting "rainbow" mode:
 Both cycle at a rate tied to the existing Speed setting (slow/normal/fast),
 so no separate speed control is needed. `prism`/`aurora` are reserved
 names and can't be used for a custom theme in `themes.local.toml`.
+
+### Depth (2D / 3D)
+
+A "Depth" tray/config setting for a future true-3D rendering mode. Only
+`2d` (the current, existing rendering) works right now -- `3d` is a
+placeholder, shown greyed out in the tray menu and rejected if set
+directly in config, until that mode is actually built.
 
 ## Project layout
 

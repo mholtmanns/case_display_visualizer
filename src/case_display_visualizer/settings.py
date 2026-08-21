@@ -22,6 +22,12 @@ MIN_LINE_THICKNESS = 1
 MAX_LINE_THICKNESS = 6
 LINE_THICKNESS_CHOICES = tuple(range(MIN_LINE_THICKNESS, MAX_LINE_THICKNESS + 1))
 
+# "3d" exists as a placeholder for future work -- it's not selectable yet
+# (the tray shows it greyed out), so DEFAULT_DEPTH is the only real value.
+DEPTH_OPTIONS = ("2d", "3d")
+AVAILABLE_DEPTH_OPTIONS = ("2d",)
+DEFAULT_DEPTH = "2d"
+
 
 @dataclass
 class AppSettings:
@@ -32,6 +38,7 @@ class AppSettings:
     starfield_direction: str = DEFAULT_DIRECTION
     equalizer_style: str = DEFAULT_STYLE
     moving_center: bool = True
+    depth: str = DEFAULT_DEPTH
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -68,6 +75,10 @@ class AppSettings:
 
     def toggle_moving_center(self) -> None:
         self.moving_center = not self.moving_center
+
+    def set_depth(self, depth: str) -> None:
+        if depth in AVAILABLE_DEPTH_OPTIONS:
+            self.depth = depth
 
     def request_quit(self) -> None:
         self.quit_requested = True
@@ -127,6 +138,7 @@ def save_settings(settings: AppSettings, path: Path | None = None) -> None:
         f'starfield_direction = "{settings.starfield_direction}"',
         f'equalizer_style = "{settings.equalizer_style}"',
         f"moving_center = {str(settings.moving_center).lower()}",
+        f'depth = "{settings.depth}"',
         "",
     ]
 
@@ -155,3 +167,6 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
     settings.set_equalizer_style(equalizer_style)
 
     settings.moving_center = bool(display.get("moving_center", True))
+
+    depth = display.get("depth", DEFAULT_DEPTH)
+    settings.set_depth(depth)
