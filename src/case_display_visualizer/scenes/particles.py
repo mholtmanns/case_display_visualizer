@@ -37,6 +37,9 @@ class ParticleBursts:
     def set_color(self, color: tuple[int, int, int]) -> None:
         self.color = color
 
+    def set_center(self, center: tuple[float, float]) -> None:
+        self.center = center
+
     def trigger(self, count: int = 1) -> None:
         for _ in range(min(count, 3)):  # cap so key-repeat can't flood it
             self._spawn_burst()

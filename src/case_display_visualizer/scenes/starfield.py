@@ -39,6 +39,7 @@ class Starfield:
         self.base_speed = base_speed
         self.speed_multiplier = 1.0
         self.direction = direction
+        self.center = (width / 2, height / 2)
         self._init_stars()
 
     def _init_stars(self) -> None:
@@ -73,6 +74,10 @@ class Starfield:
     def set_energy(self, energy: float) -> None:
         """Drive scroll speed from a 0..1 energy value (e.g. CPU load)."""
         self.speed_multiplier = 0.5 + energy * 3.0
+
+    def set_center(self, center: tuple[float, float]) -> None:
+        """Only meaningful in tunnel mode (away/towards); ignored otherwise."""
+        self.center = center
 
     def update(self, dt: float) -> None:
         speed = self.base_speed * self.speed_multiplier
@@ -140,7 +145,7 @@ class Starfield:
             pygame.draw.circle(surface, color, (int(x), int(y)), size)
 
     def _draw_tunnel(self, surface: pygame.Surface) -> None:
-        cx, cy = self.width / 2, self.height / 2
+        cx, cy = self.center
         for sx, sy, sz in self.stars:
             screen_x = cx + sx / sz * FOCAL_LENGTH
             screen_y = cy + sy / sz * FOCAL_LENGTH

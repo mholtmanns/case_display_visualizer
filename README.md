@@ -98,6 +98,19 @@ Changes made via the tray menu are saved automatically to
 `config.local.toml`, so they persist across restarts. `config.toml` itself
 is never modified -- it stays as the checked-in set of shipped defaults.
 
+### Wandering center
+
+The hex rings' center drifts slowly around the screen along a smooth,
+curved, non-repeating path (a rolling Catmull-Rom spline through random
+waypoints, not the straight-line/bounce-off-the-wall motion of old
+floating-logo screensavers), staying at least 30px from every edge. The
+radial equalizer and the tunnel starfield (`away`/`towards`) share the
+exact same moving center, so the whole cluster drifts together as one
+unit; the bottom equalizer bar and linear starfield directions have no
+"center" concept and are unaffected. Movement is intentionally slow and
+fixed-rate rather than tied to the Speed setting. `-static` mode keeps
+everything at the screen center as usual.
+
 ### Custom color themes
 
 Copy [themes.example.toml](themes.example.toml) to `themes.local.toml` to
@@ -135,6 +148,7 @@ src/case_display_visualizer/
   settings.py         Runtime settings shared with the tray icon
   themes.py            Named color palettes (+ themes.local.toml overrides)
   rainbow.py            Hue-cycling colors for the prism/aurora theme modes
+  wander.py              Smooth Catmull-Rom wander path for the shared center
   tray.py               System tray icon and menu
   sensors/           Input sources (cpu, gpu, audio, input-activity)
   scenes/            Visual scenes (starfield, hex rings, equalizer, particles)

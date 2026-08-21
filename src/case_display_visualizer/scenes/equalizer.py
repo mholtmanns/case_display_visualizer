@@ -70,6 +70,10 @@ class EqualizerBars:
         pass None to fall back to the low->high gradient from set_colors()."""
         self.band_colors = colors
 
+    def set_center(self, center: tuple[float, float]) -> None:
+        """Only meaningful in "radial" style; ignored by "bottom"."""
+        self.center = center
+
     def set_style(self, style: str, inner_radius: float | None = None) -> None:
         if style in STYLES:
             self.style = style

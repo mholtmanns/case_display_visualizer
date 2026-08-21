@@ -50,6 +50,9 @@ class HexRings:
     def set_energy(self, energy: float) -> None:
         self.pulse = energy
 
+    def set_center(self, center: tuple[float, float]) -> None:
+        self.center = center
+
     def set_color(self, color: tuple[int, int, int]) -> None:
         self.color = color
 

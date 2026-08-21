@@ -17,7 +17,7 @@ from case_display_visualizer.randomizer import SceneRandomizer
 from case_display_visualizer.scenes.equalizer import EqualizerBars
 from case_display_visualizer.scenes.hex_rings import COMPACT_MAX_REACH, HexRings
 from case_display_visualizer.scenes.particles import ParticleBursts
-from case_display_visualizer.scenes.starfield import Starfield
+from case_display_visualizer.scenes.starfield import TUNNEL_DIRECTIONS, Starfield
 from case_display_visualizer.sensors.audio import AudioSensor
 from case_display_visualizer.sensors.cpu import CpuSensor
 from case_display_visualizer.sensors.gpu import GpuSensor
@@ -25,6 +25,7 @@ from case_display_visualizer.sensors.input_activity import InputActivitySensor
 from case_display_visualizer.settings import load_settings
 from case_display_visualizer.themes import DEFAULT_THEME, get_theme
 from case_display_visualizer.tray import build_tray_icon
+from case_display_visualizer.wander import CenterWander
 
 BACKGROUND_COLOR = (5, 6, 12)
 TARGET_FPS = 60
@@ -149,11 +150,13 @@ def run(argv: list[str] | None = None) -> None:
         audio_sensor = None
         input_sensor = None
         composer = None
+        wander = None
         equalizer.set_static_ramp()
     else:
         audio_sensor = AudioSensor()
         input_sensor = InputActivitySensor()
         composer = Composer([CpuSensor(), GpuSensor(), audio_sensor, input_sensor])
+        wander = CenterWander(target.width, target.height)
 
     tray_icon = build_tray_icon(settings)
     tray_thread = threading.Thread(target=tray_icon.run, daemon=True)
@@ -244,6 +247,14 @@ def run(argv: list[str] | None = None) -> None:
                 if settings.equalizer_style != applied_equalizer_style:
                     applied_equalizer_style = settings.equalizer_style
                     _apply_equalizer_style(applied_equalizer_style, hex_rings, equalizer)
+
+                center = wander.update(dt)
+                hex_rings.set_center(center)
+                particles.set_center(center)
+                if settings.equalizer_style == "radial":
+                    equalizer.set_center(center)
+                if settings.starfield_direction in TUNNEL_DIRECTIONS:
+                    starfield.set_center(center)
 
                 energy = composer.update(dt)
 
