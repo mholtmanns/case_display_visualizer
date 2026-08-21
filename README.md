@@ -103,7 +103,7 @@ is never modified -- it stays as the checked-in set of shipped defaults.
 The hex rings' center drifts slowly around the screen along a smooth,
 curved, non-repeating path (a rolling Catmull-Rom spline through random
 waypoints, not the straight-line/bounce-off-the-wall motion of old
-floating-logo screensavers), staying at least 30px from every edge. The
+floating-logo screensavers), staying at least 50px from every edge. The
 radial equalizer and the tunnel starfield (`away`/`towards`) share the
 exact same moving center, so the whole cluster drifts together as one
 unit; the bottom equalizer bar and linear starfield directions have no

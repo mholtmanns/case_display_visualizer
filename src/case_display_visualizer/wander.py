@@ -16,7 +16,7 @@ import random
 # Speed setting -- this is a much larger, more structural motion than the
 # ring rotation/rainbow cycling, and moving it too fast reads as chaotic
 # rather than ambient.
-DEFAULT_SPEED = 0.04  # ~25s per leg
+DEFAULT_SPEED = 0.06  # ~16.7s per leg
 
 
 def _catmull_rom(p0: float, p1: float, p2: float, p3: float, t: float) -> float:
@@ -35,7 +35,7 @@ class CenterWander:
         self,
         width: float,
         height: float,
-        margin: float = 30.0,
+        margin: float = 50.0,
         speed: float = DEFAULT_SPEED,
     ) -> None:
         self.min_x = margin
