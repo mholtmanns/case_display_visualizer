@@ -32,6 +32,7 @@ class AppSettings:
     line_thickness: int = 1
     starfield_direction: str = DEFAULT_DIRECTION
     equalizer_style: str = DEFAULT_STYLE
+    moving_center: bool = True
     quit_requested: bool = False
 
     def is_enabled(self, sensor_name: str) -> bool:
@@ -65,6 +66,9 @@ class AppSettings:
     def set_equalizer_style(self, style: str) -> None:
         if style in STYLES:
             self.equalizer_style = style
+
+    def toggle_moving_center(self) -> None:
+        self.moving_center = not self.moving_center
 
     def request_quit(self) -> None:
         self.quit_requested = True
@@ -119,6 +123,7 @@ def save_settings(settings: AppSettings, path: Path | None = None) -> None:
         f"line_thickness = {settings.line_thickness}",
         f'starfield_direction = "{settings.starfield_direction}"',
         f'equalizer_style = "{settings.equalizer_style}"',
+        f"moving_center = {str(settings.moving_center).lower()}",
         "",
     ]
 
@@ -145,3 +150,5 @@ def _apply_config(settings: AppSettings, data: dict) -> None:
 
     equalizer_style = display.get("equalizer_style", DEFAULT_STYLE)
     settings.set_equalizer_style(equalizer_style)
+
+    settings.moving_center = bool(display.get("moving_center", True))

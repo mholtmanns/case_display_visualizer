@@ -132,6 +132,13 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
     def equalizer_style_checked(style: str):
         return lambda item: settings.equalizer_style == style
 
+    def moving_center_handler(icon, item):
+        settings.toggle_moving_center()
+        persist()
+
+    def moving_center_checked(item):
+        return settings.moving_center
+
     def quit_handler(icon, item):
         settings.request_quit()
         icon.stop()
@@ -221,6 +228,9 @@ def build_tray_icon(settings: AppSettings) -> pystray.Icon:
         pystray.MenuItem("Line thickness", pystray.Menu(*line_thickness_items)),
         pystray.MenuItem("Starfield direction", pystray.Menu(*direction_items)),
         pystray.MenuItem("Equalizer style", pystray.Menu(*equalizer_style_items)),
+        pystray.MenuItem(
+            "Moving center", moving_center_handler, checked=moving_center_checked
+        ),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_handler),
     )

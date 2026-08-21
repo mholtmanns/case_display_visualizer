@@ -31,3 +31,7 @@ starfield_direction = "left"
 #            the rings are fixed at 4 and made smaller to fit. Loud audio
 #            can push bars past the screen edge -- that's expected.
 equalizer_style = "bottom"
+# Whether the hex-ring center (and, when relevant, the radial equalizer and
+# tunnel starfield) slowly wanders around the screen instead of staying
+# fixed in the middle.
+moving_center = true

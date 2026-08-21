@@ -25,6 +25,7 @@ def dump_config(
         f"Line thickness : {settings.line_thickness}px",
         f"Starfield dir. : {settings.starfield_direction}",
         f"Equalizer style: {settings.equalizer_style}",
+        f"Moving center  : {'on' if settings.moving_center else 'off'}",
         "=======================================",
     ]
     print("\n".join(lines), flush=True)

@@ -53,7 +53,8 @@ falling back to the first non-primary monitor otherwise. A system tray icon
 sensors (CPU/GPU/audio/keyboard-mouse), pick an animation speed, choose a
 color theme, set the ring line thickness (1-6px), pick the starfield
 direction (left/right/up/down/away/towards), choose the equalizer layout
-(bottom bar / radial around the rings), and quit.
+(bottom bar / radial around the rings), toggle the moving center on/off,
+and quit.
 
 ### Flags
 
@@ -110,6 +111,10 @@ unit; the bottom equalizer bar and linear starfield directions have no
 "center" concept and are unaffected. Movement is intentionally slow and
 fixed-rate rather than tied to the Speed setting. `-static` mode keeps
 everything at the screen center as usual.
+
+Toggle it off via the tray's "Moving center" checkbox or `moving_center =
+false` in config -- everything snaps back to (and stays at) the screen
+center. Turning it back on resumes the same path from where it paused.
 
 ### Custom color themes
 

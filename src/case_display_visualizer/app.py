@@ -136,10 +136,12 @@ def run(argv: list[str] | None = None) -> None:
     clock = pygame.time.Clock()
     topmost_reassert_timer = 0.0
 
+    default_center = (target.width / 2, target.height / 2)
+
     starfield = Starfield(target.width, target.height)
-    hex_rings = HexRings(center=(target.width / 2, target.height / 2))
+    hex_rings = HexRings(center=default_center)
     equalizer = EqualizerBars(target.width, target.height)
-    particles = ParticleBursts(center=(target.width / 2, target.height / 2))
+    particles = ParticleBursts(center=default_center)
     layers = [starfield, hex_rings, equalizer, particles]
 
     if static:
@@ -248,7 +250,7 @@ def run(argv: list[str] | None = None) -> None:
                     applied_equalizer_style = settings.equalizer_style
                     _apply_equalizer_style(applied_equalizer_style, hex_rings, equalizer)
 
-                center = wander.update(dt)
+                center = wander.update(dt) if settings.moving_center else default_center
                 hex_rings.set_center(center)
                 particles.set_center(center)
                 if settings.equalizer_style == "radial":
