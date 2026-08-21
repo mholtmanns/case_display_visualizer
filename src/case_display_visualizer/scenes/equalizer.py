@@ -77,6 +77,11 @@ class EqualizerBars:
             for c in range(3)
         )
 
+    def _bar_pixel_width(self) -> float:
+        """Same tangential width as the bottom bars, for visual parity."""
+        gap = 2
+        return (self.width - gap * (self.band_count - 1)) / self.band_count
+
     def draw(self, surface: pygame.Surface) -> None:
         if self.style == "radial":
             self._draw_radial(surface)
@@ -85,7 +90,7 @@ class EqualizerBars:
 
     def _draw_bottom(self, surface: pygame.Surface) -> None:
         gap = 2
-        bar_width = (self.width - gap * (self.band_count - 1)) / self.band_count
+        bar_width = self._bar_pixel_width()
 
         for i, value in enumerate(self._display):
             bar_height = int(max(2.0, float(value) * self.max_bar_height))
@@ -101,6 +106,7 @@ class EqualizerBars:
 
     def _draw_radial(self, surface: pygame.Surface) -> None:
         cx, cy = self.center
+        half_width = self._bar_pixel_width() / 2
 
         for i, value in enumerate(self._display):
             length = max(2.0, float(value) * self.max_bar_height)
@@ -108,12 +114,25 @@ class EqualizerBars:
             angle = (i / self.band_count) * 2 * math.pi - math.pi / 2
 
             cos_a, sin_a = math.cos(angle), math.sin(angle)
-            inner = (cx + self.inner_radius * cos_a, cy + self.inner_radius * sin_a)
-            outer = (
-                cx + (self.inner_radius + length) * cos_a,
-                cy + (self.inner_radius + length) * sin_a,
-            )
+            perp_x, perp_y = -sin_a, cos_a
+
+            inner_x = cx + self.inner_radius * cos_a
+            inner_y = cy + self.inner_radius * sin_a
+            outer_x = cx + (self.inner_radius + length) * cos_a
+            outer_y = cy + (self.inner_radius + length) * sin_a
+
+            quad = [
+                (inner_x + perp_x * half_width, inner_y + perp_y * half_width),
+                (inner_x - perp_x * half_width, inner_y - perp_y * half_width),
+                (outer_x - perp_x * half_width, outer_y - perp_y * half_width),
+                (outer_x + perp_x * half_width, outer_y + perp_y * half_width),
+            ]
 
             color = self._color_for(i)
-            pygame.draw.line(surface, color, inner, outer, 3)
-            pygame.draw.circle(surface, (255, 255, 255), (int(outer[0]), int(outer[1])), 2)
+            pygame.draw.polygon(surface, color, quad)
+
+            cap = [
+                (outer_x + perp_x * half_width, outer_y + perp_y * half_width),
+                (outer_x - perp_x * half_width, outer_y - perp_y * half_width),
+            ]
+            pygame.draw.line(surface, (255, 255, 255), cap[0], cap[1], 2)
